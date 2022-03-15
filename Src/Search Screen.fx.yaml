@@ -1,0 +1,1875 @@
+"'Search Screen' As screen.'phoneLayout_FluidGridWithHeaderPageLayout_ver3.0'":
+    Fill: =
+    OnHidden: |
+        =UpdateContext({locResetScrollPosition: false});
+    OnVisible: |
+        =//Hide the error modal until an error arises
+        UpdateContext({locIsErrorModalVisible: false });
+        
+        Concurrent(
+            //Call Loading animation and set default var values
+            UpdateContext(
+                {
+                    locIsLoadingVisible: false,
+                    locIsDoneLoadingVisible: false,
+                    locStartLoadingTimer: true,
+                    locStartDoneTimer: false,
+                    locLoadingDuration: gblBaseLoadTime,
+                    locResetScrollPosition: true, //Used to reset the scrollable screen back to the top if user left it at bottom
+                    locDateErrorExists: false,
+                    locDateError: ""
+                }
+            ),
+        
+            
+            ClearCollect(colSearch_Regions,
+                ForAll(colSearch_AllRegions As region, { ID: region.ID, Result: Switch(gblAppUserLang, "fr", region.region_name_fr, region.region_name_en) }),
+                {
+                    ID: -1,
+                    Result: LookUp(colTranslationTable, key = "bookingsearch.region.default" && language.Value = gblAppUserLang, text)
+                }
+            )
+            
+        );
+        
+        //End Loading Animation - In turn, turns on done animation
+        UpdateContext({locLoadingDuration: 0});
+
+    shpScreenBackdropSS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =2
+
+    shpPageBackdropSS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =3
+
+    canScrollableCanvasSS As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =App.Height - cmpHeaderSS.Height - cmpNavSS.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =cmpHeaderSS.Y + cmpHeaderSS.Height
+        ZIndex: =5
+
+        canCanvasCardSS As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            Height: |
+                =If(gblCalendarVisible,
+                    Max(
+                        btnSearch.Y + btnSearch.Height,
+                        cmpCalendarDatePicker.Y + cmpCalendarDatePicker.Height
+                    ),
+                    btnSearch.Y + btnSearch.Height
+                ) +
+                70 * Switch(
+                    Value(lblScreenWidthSizingSS.Text),
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,
+                    2
+                )
+            Visible: =locResetScrollPosition
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+            shpPagePadding As rectangle:
+                Fill: =shpPageBackdropSS.Fill
+                Height: =Parent.Height
+                OnSelect: =Switch(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                Width: =Parent.Width
+                ZIndex: =1
+
+            btnSearch As button:
+                BorderColor: =RGBA(0,0,0,0)
+                BorderThickness: =drpRegion.BorderThickness
+                DisabledColor: =LookUp(Colors, Color = "Background", RGB)
+                DisabledFill: =LookUp(Colors, Color = "Grey", RGB)
+                DisplayMode: |-
+                    =If(
+                        !IsBlank(drpBuilding.SelectedText) && drpBuilding.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' <> gblBuildingDefaultText && !IsBlank(drpFloor.SelectedText) && drpFloor.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' <> gblFloorDefaultText && !IsBlank(drpNeighbourhood.SelectedText) && drpNeighbourhood.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' <> gblNeighbourhoodDefaultText && !IsBlank(drpSeatingType.SelectedText) && drpSeatingType.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' <> gblSeatingTypeDefaultText && !IsBlank(txtDatePickerInput.Text) && IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit) && ( (DateValue(txtDatePickerInput.Text) >= Today()) && (DateValue(txtDatePickerInput.Text) <= DateAdd(Today(), 7))) && !IsBlank(drpTimeRange.SelectedText),
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )
+                Fill: =LookUp(Colors, Color = "Primary", RGB)
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                    )
+                Font: =Font.'Lato Black'
+                Height: |-
+                    =Min(100 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25),
+                        100 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25) 
+                    )
+                HoverBorderColor: =RGBA(0,0,0,0)
+                HoverColor: =Self.Color
+                HoverFill: =LookUp(Colors, Color = "Muted Primary", RGB)
+                OnSelect: |
+                    =//On search, enable all Seating Arrangments again
+                    ClearCollect(colMyResultsFilter, ForAll(colSeatingArrangementTable As refTable, { ID: refTable.ID, Enabled: false}));
+                    
+                    //Go to results page, pass chosen values from this (Search Page) to the Results page
+                    Navigate(
+                        'Results Screen',
+                        ScreenTransition.Cover,
+                        {
+                            locRegion: drpRegion.Selected,
+                            locBuilding: drpBuilding.Selected,
+                            locFloor: drpFloor.Selected,
+                            locNeighbourhood: drpNeighbourhood.Selected,
+                            locSeatingType: drpSeatingType.Selected,
+                            locDate: DateValue(txtDatePickerInput.Text),
+                            locTimeRange: drpTimeRange.Selected
+                        }
+                    );
+                PressedBorderColor: =RGBA(0,0,0,0)
+                PressedFill: =Color.White
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(15 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        15 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: |-
+                    =Min(18 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.75,  
+                            1.9),
+                        18 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.75,  
+                            1.9) 
+                    )
+                Text: =LookUp(colTranslationTable, key = "bookingsearch.button.search" && language.Value = gblAppUserLang, text)
+                Tooltip: =
+                Width: =drpRegion.Width
+                X: =drpRegion.X
+                Y: |-
+                    =lblClearAll.Y + lblClearAll.Height + 
+                    Min(30 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1,  
+                            ScreenSize.Large, 1.125,
+                            1.25),
+                        30 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1,  
+                            ScreenSize.Large, 1.125,
+                            1.25)
+                    )
+                ZIndex: =2
+
+            lblClearAll As label:
+                Align: =Align.Center
+                AutoHeight: =true
+                BorderColor: =RGBA(0,0,0,0)
+                Color: =LookUp(Colors, Color = "Muted Primary Text", RGB)
+                DisabledColor: =LookUp(Colors, Color = "Grey", RGB)
+                DisplayMode: |-
+                    =If( ( (!IsBlank(drpRegion.SelectedText)) && !(drpRegion.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.region.default" && language.Value = gblAppUserLang, text)) ) ||
+                        
+                        ( (!IsBlank(drpBuilding.SelectedText)) && !(drpBuilding.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.building.default" && language.Value = gblAppUserLang, text)) ) ||
+                        
+                        ( (!IsBlank(drpFloor.SelectedText)) && !(drpFloor.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.floor.default" && language.Value = gblAppUserLang, text)) ) ||
+                        
+                        ( (!IsBlank(drpNeighbourhood.SelectedText)) && !(drpNeighbourhood.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = 
+                    LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.default" && language.Value = gblAppUserLang, text)) ) ||
+                        
+                        ( (!IsBlank(drpSeatingType.SelectedText)) && !(drpSeatingType.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text)) ) ||
+                        
+                        ( !(txtDatePickerInput.Text = "")),
+                        // Should add the Time Range too when it is not limited to one option
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                    )
+                Font: =Font.Lato
+                Height: =50
+                HoverBorderColor: =RGBA(0,0,0,0)
+                HoverColor: =LookUp(Colors, Color = "Primary", RGB)
+                HoverFill: =RGBA(0,0,0,0)
+                OnSelect: |-
+                    =//Call Loading animation
+                    
+                    UpdateContext(
+                        {
+                            locIsLoadingVisible: false,
+                            locIsDoneLoadingVisible: false,
+                            locStartLoadingTimer: true,
+                            locLoadingDuration: gblBaseLoadTime
+                        }
+                    );
+                    
+                    Concurrent(
+                        Clear(colSearch_Buildings),
+                        Clear(colSearch_Floors),
+                        Clear(colSearch_Neighbourhoods), 
+                        Clear(colSearch_SeatingTypes), 
+                        Clear(colSearch_TimeRanges), 
+                        Reset(drpRegion), 
+                        Reset(drpBuilding), 
+                        Reset(drpFloor), 
+                        Reset(drpNeighbourhood), 
+                        Reset(drpSeatingType),
+                        Reset(drpSeatingType), 
+                        Reset(txtDatePickerInput),
+                        Set(gblDateSelected, Blank()),
+                        Set(gblCalendarVisible, false), 
+                        UpdateContext({locDateErrorExists: false, locDateError: ""}), 
+                        Reset(drpTimeRange) 
+                    );
+                    
+                    //End Loading Animation - In turn, turns on done animation
+                    UpdateContext({locLoadingDuration: 0});
+                Size: =drpRegion.Size
+                TabIndex: =0
+                Text: =LookUp(colTranslationTable, key = "bookingsearch.button.clear" && language.Value = gblAppUserLang, text)
+                Tooltip: =
+                Underline: =true
+                Width: =Self.Size * Len(Self.Text) * 0.7
+                X: |-
+                    =/*icoSeatingTypeEyeLinkSS.X - Self.Width - 
+                    Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.75),
+                        2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.75) 
+                    )*/
+                    drpSeatingType.X + drpSeatingType.Width - Self.Width
+                Y: |-
+                    =drpTimeRange.Y + drpTimeRange.Height + 
+                    Min(30 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1,  
+                            ScreenSize.Large, 1.125,
+                            1.25),
+                        30 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1,  
+                            ScreenSize.Large, 1.125,
+                            1.25)
+                    )
+                ZIndex: =3
+
+            Neighbourhood As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =15
+
+                drpNeighbourhood As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderStyle: |
+                        =BorderStyle.Solid
+                    BorderThickness: =drpRegion.BorderThickness
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =Self.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpNeighbourhood.ChevronBackground
+                    ChevronHoverFill: =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If(IsBlank(drpFloor.SelectedText) || drpFloor.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID' = -1, DisplayMode.Disabled, DisplayMode.Edit)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HoverBorderColor: =
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_Neighbourhoods, If(ID = -1, "ID", "Result"))
+                    OnChange: |
+                        =Concurrent(
+                            Clear(colSearch_SeatingTypes), 
+                            Reset(drpSeatingType),
+                            
+                            //Call Loading animation
+                            UpdateContext(
+                                {
+                                locIsLoadingVisible: false,
+                                locIsDoneLoadingVisible: false,
+                                locStartLoadingTimer: true,
+                                locLoadingDuration: gblBaseLoadTime
+                                }
+                            ),
+                        
+                            IfError(
+                                // Get ID's of seating types that are available of desks in a given Region -> Building -> Floor -> Neighbourhood
+                                ClearCollect(colSearch_AvailableSeatingTypesInNeighbourhood, Distinct(Filter(Desks, status.Value = "ACTIVE", (drpNeighbourhood.Selected.ID >= 1 && neighbourhood_id.Value = Text(drpNeighbourhood.Selected.ID))), seating_type_id.Id)),
+                        
+                                //If there's an error show the component (error modal)
+                                UpdateContext({locIsErrorModalVisible: true});
+                                
+                                //If there's an error also try to patch the error details to the Sharepoint Error list
+                                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                {   user_email: Lower(gblAppUserDetails.mail), 
+                                    error_code: First(Errors(Desks)).Error,
+                                    error_message: First(Errors(Desks)).Message, 
+                                    error_log: "Distinct(Filter(Desks ))...",
+                                    error_origin: App.ActiveScreen 
+                                }),
+                                Table()
+                            )
+                        
+                        );
+                        
+                        // -- No need to check for errors, already pulled in the Seating Types on start and checked for errors then
+                        //1. Retreive ID Column 
+                        //2. Conditionally Retrieve Seating Type Columns Based on Language
+                        //3. Only keep Seating Types that have active desks associated to them (desks may be booked, as long as they exist) 
+                        //4. Insert Placeholder "Select Your ..." into 2.
+                        ClearCollect(
+                            colSearch_SeatingTypes,
+                            If(
+                                gblAppUserLang = "en",
+                                RenameColumns(
+                                    DropColumns(
+                                        GroupBy(
+                                            Filter(colSeatingTypeTable, ID in colSearch_AvailableSeatingTypesInNeighbourhood.Result),
+                                            "ID",
+                                            "seating_type_name_en",
+                                            "leftover"
+                                        ),
+                                        "leftover"
+                                    ),
+                                    "seating_type_name_en",
+                                    "Result"
+                                ),
+                                RenameColumns(
+                                    DropColumns(
+                                        GroupBy(
+                                            Filter(colSeatingTypeTable, ID in colSearch_AvailableSeatingTypesInNeighbourhood.Result),
+                                            "ID",
+                                            "seating_type_name_fr",
+                                            "leftover"
+                                        ),
+                                        "leftover"
+                                    ),
+                                    "seating_type_name_fr",
+                                    "Result"
+                                )
+                            ),
+                            {
+                                ID: -2,
+                                Result: LookUp(
+                                    colTranslationTable,
+                                    key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang,
+                                    text
+                                )
+                            },
+                            {
+                                ID: -1,
+                                Result: LookUp(
+                                    colTranslationTable,
+                                    key = "bookingsearch.seatingtype.any" && language.Value = gblAppUserLang,
+                                    text
+                                )
+                            }
+                        );
+                        
+                        //End Loading Animation
+                        UpdateContext({locLoadingDuration: 0});
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: =drpRegion.PaddingBottom
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PaddingRight: =drpRegion.PaddingRight
+                    PaddingTop: =drpRegion.PaddingTop
+                    PressedBorderColor: =
+                    PressedColor: =drpNeighbourhood.Color
+                    PressedFill: =drpNeighbourhood.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: =drpRegion.Size
+                    Width: =drpRegion.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpFloor.Y + 
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        )
+                    ZIndex: =18
+
+                lblNeighbourhood As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =drpNeighbourhood.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =19
+
+            Floor As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =15
+
+                drpFloor As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.floor.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderThickness: =drpRegion.BorderThickness
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =Self.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpFloor.ChevronBackground
+                    ChevronHoverFill: =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.floor.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If(IsBlank(drpBuilding.SelectedText) || drpBuilding.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID' = -1, DisplayMode.Disabled, DisplayMode.Edit)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HoverBorderColor: =
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_Floors, If(ID = -1, "ID", "Result"))
+                    OnChange: |
+                        =Concurrent(
+                            Clear(colSearch_Neighbourhoods), 
+                            Clear(colSearch_SeatingTypes), 
+                            Reset(drpNeighbourhood), 
+                            Reset(drpSeatingType),
+                            
+                            //Call Loading animation
+                            UpdateContext(
+                                {
+                                    locIsLoadingVisible: false,
+                                    locIsDoneLoadingVisible: false,
+                                    locStartLoadingTimer: true,
+                                    locLoadingDuration: gblBaseLoadTime
+                                }
+                            )
+                        );
+                        
+                        
+                        IfError(
+                            //1. Retreive ID Column 
+                            //2. Conditionally Retrieve Neighbourhood Columns Based on Language
+                            //3. Insert Placeholder "Select Your ..." into 2.
+                            ClearCollect(
+                                colSearch_Neighbourhoods,
+                                {
+                                    ID: -1,
+                                    Result: LookUp(
+                                        colTranslationTable,
+                                        key = "bookingsearch.neighbourhood.default" && language.Value = gblAppUserLang,
+                                        text
+                                    )
+                                },
+                                SortByColumns(
+                                    Switch(gblAppUserLang, "fr",
+                                        AddColumns(Filter(Neighbourhoods, floor_id.Value = Text(drpFloor.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", ThisRecord.neighbourhood_name_fr),
+                                        AddColumns(Filter(Neighbourhoods, floor_id.Value = Text(drpFloor.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", ThisRecord.neighbourhood_name_en)),
+                                    "Result",
+                                    Ascending
+                                )
+                            ),
+                        
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                            
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Neighbourhoods)).Error,
+                                error_message: First(Errors(Neighbourhoods)).Message, 
+                                error_log: "GroupBy(Filter(Neighbourhoods, ))...",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            {}
+                        );
+                        
+                        //End Loading Animation - In turn, turns on done animation
+                        UpdateContext({locLoadingDuration: 0});
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: =drpRegion.PaddingBottom
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PaddingRight: =drpRegion.PaddingRight
+                    PaddingTop: =drpRegion.PaddingTop
+                    PressedBorderColor: =
+                    PressedColor: =drpFloor.Color
+                    PressedFill: =drpFloor.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: =drpRegion.Size
+                    Width: =drpBuilding.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpBuilding.Y +
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        )
+                    ZIndex: =20
+
+                lblFloor As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.floor.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =drpFloor.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =21
+
+            Building As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =15
+
+                drpBuilding As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.building.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderThickness: =drpRegion.BorderThickness
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =Self.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpBuilding.ChevronBackground
+                    ChevronHoverFill: =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.building.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If( (IsBlank(drpRegion.SelectedText) || drpRegion.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID' = -1), DisplayMode.Disabled, DisplayMode.Edit)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HoverBorderColor: =
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_Buildings, If(ID = -1, "ID", "Result"))
+                    OnChange: |
+                        =Concurrent(
+                            Clear(colSearch_Floors), 
+                            Clear(colSearch_Neighbourhoods), 
+                            Clear(colSearch_SeatingTypes), 
+                            Reset(drpFloor), 
+                            Reset(drpNeighbourhood), 
+                            Reset(drpSeatingType),
+                            
+                            //Call Loading animation
+                            UpdateContext(
+                                {
+                                    locIsLoadingVisible: false,
+                                    locIsDoneLoadingVisible: false,
+                                    locStartLoadingTimer: true,
+                                    locLoadingDuration: gblBaseLoadTime
+                                }
+                            )
+                        );
+                        
+                        
+                        IfError(
+                            //1. Retreive ID Column 
+                            //2. Conditionally Retrieve Floor Columns Based on Language
+                            //3. Insert Placeholder "Select Your ..." into 2.
+                            ClearCollect(
+                                colSearch_Floors,
+                                {
+                                    ID: -1,
+                                    Result: LookUp(
+                                        colTranslationTable,
+                                        key = "bookingsearch.floor.default" && language.Value = gblAppUserLang,
+                                        text
+                                    )
+                                },
+                                SortByColumns(
+                                    Switch(gblAppUserLang, "fr",
+                                        AddColumns(Filter(Floors, building_id.Value = Text(drpBuilding.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", ThisRecord.floor_name_fr),
+                                        AddColumns(Filter(Floors, building_id.Value = Text(drpBuilding.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", ThisRecord.floor_name_en)), 
+                                "Result",
+                                Ascending
+                                )
+                            ),
+                        
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                            
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Floors)).Error,
+                                error_message: First(Errors(Floors)).Message, 
+                                error_log: "GroupBy(Filter(Floors, ))...",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            {}
+                        );
+                        
+                        //End Loading Animation - In turn, turns on done animation
+                        UpdateContext({locLoadingDuration: 0});
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: =drpRegion.PaddingBottom
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PaddingRight: =drpRegion.PaddingRight
+                    PaddingTop: =drpRegion.PaddingTop
+                    PressedBorderColor: =
+                    PressedColor: =drpBuilding.Color 
+                    PressedFill: =drpBuilding.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: =drpRegion.Size
+                    Width: =drpRegion.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpRegion.Y + 
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        )
+                    ZIndex: =22
+
+                lblBuilding As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.building.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =drpBuilding.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =23
+
+            "'Time Range' As group":
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =15
+
+                drpTimeRange As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.timerange.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderThickness: =drpRegion.BorderThickness
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =drpTimeRange.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpTimeRange.ChevronBackground
+                    ChevronHoverFill: =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.timerange.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If(!IsBlank(txtDatePickerInput.Text) && IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit) && ( (DateValue(txtDatePickerInput.Text) >= Today()) && (DateValue(txtDatePickerInput.Text) <= DateAdd(Today(), 7))), DisplayMode.Edit, DisplayMode.Disabled)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HoverBorderColor: =
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_TimeRanges, If(ID = -1, "ID", "Result"))
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: =drpRegion.PaddingBottom
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PaddingRight: =drpRegion.PaddingRight
+                    PaddingTop: =drpRegion.PaddingTop
+                    PressedBorderColor: =
+                    PressedColor: =drpTimeRange.Color
+                    PressedFill: =drpTimeRange.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: =drpRegion.Size
+                    Width: =drpRegion.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =If(lblDateError.Text <> "", shpErrorBackground.Y + shpErrorBackground.Height +
+                            Min(75 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             75 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        ), 
+                        txtDatePickerInput.Y + 
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                            )
+                        )
+                    ZIndex: =4
+
+                lblTimeRange As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.timerange.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =drpTimeRange.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =5
+
+            Region As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =-160
+                ZIndex: =20
+
+                drpRegion As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.region.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderThickness: |-
+                        =Min(2 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =Self.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpRegion.ChevronBackground
+                    ChevronHoverFill: |
+                        =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.region.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If(IsEmpty(colSearch_Regions), DisplayMode.Disabled, DisplayMode.Edit)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: |-
+                        =Min(70 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.35),
+                            70 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.35)
+                        )
+                    HoverBorderColor: =Self.BorderColor
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_Regions, If(ID = -1, "ID", "Result"))
+                    OnChange: |
+                        =Concurrent(
+                            Clear(colSearch_Buildings), 
+                            Clear(colSearch_Floors), 
+                            Clear(colSearch_Neighbourhoods), 
+                            Clear(colSearch_SeatingTypes), 
+                            Reset(drpBuilding), 
+                            Reset(drpFloor), 
+                            Reset(drpNeighbourhood), 
+                            Reset(drpSeatingType),
+                        
+                            //Call Loading animation
+                            UpdateContext(
+                                {
+                                locIsLoadingVisible: false,
+                                locIsDoneLoadingVisible: false,
+                                locStartLoadingTimer: true,
+                                locLoadingDuration: gblBaseLoadTime
+                                }
+                            )
+                        );
+                        
+                        IfError(
+                            //1. Retreive ID Column 
+                            //2. Conditionally Retrieve Building Columns Based on Language
+                            //3. Insert Placeholder "Select Your ..." into 2.
+                            ClearCollect(colSearch_Buildings,
+                                {
+                                    ID: -1,
+                                    Result: LookUp(
+                                        colTranslationTable,
+                                        key = "bookingsearch.building.default" && language.Value = gblAppUserLang,
+                                        text
+                                    )
+                                },
+                                Switch(gblAppUserLang, "fr", 
+                        
+                                    AddColumns(Filter(Buildings, region_id.Value = Text(drpRegion.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", building_add_fr & If(!IsBlank(building_name_fr), " (" & building_name_fr & ")")),
+                        
+                        
+                                    AddColumns(Filter(Buildings, region_id.Value = Text(drpRegion.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID')), "Result", building_add_en & If(!IsBlank(building_name_en), " (" & building_name_en & ")"))
+                                )
+                            ),
+                        
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                            
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Buildings)).Error,
+                                error_message: First(Errors(Buildings)).Message, 
+                                error_log: "GroupBy(Filter(Buildings, ))...",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            {}
+                        );
+                        
+                        //End Loading Animation - In turn, turns on done animation
+                        UpdateContext({locLoadingDuration: 0});
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            10 * Switch(cmpScreenFunctionsSS.ScreenSize, 
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    PaddingLeft: |-
+                        =Min(25 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            25 * Switch(cmpScreenFunctionsSS.ScreenSize, 
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    PaddingRight: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            10 * Switch(cmpScreenFunctionsSS.ScreenSize, 
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    PaddingTop: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            10 * Switch(cmpScreenFunctionsSS.ScreenSize, 
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                            
+                    PressedBorderColor: =Self.BorderColor
+                    PressedColor: =drpRegion.Color
+                    PressedFill: =drpRegion.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Width: |-
+                        =//ScrollableCanvasBS.Width /1.2
+                        canScrollableCanvasSS.Width 
+                        - (10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                        - (25 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                    X: =Parent.Width/2 - Self.Width/2
+                    Y: |-
+                        =75 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                    ZIndex: =24
+
+                lblRegion As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.region.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpRegion.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =25
+
+            "'Seating Type' As group":
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =22
+
+                drpSeatingType As dropdown:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text)
+                    BorderColor: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    BorderStyle: |
+                        =BorderStyle.Solid
+                    BorderThickness: =drpRegion.BorderThickness
+                    ChevronBackground: =RGBA(0, 0, 0, 0)
+                    ChevronDisabledBackground: =Self.ChevronBackground
+                    ChevronDisabledFill: =Self.ChevronFill
+                    ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+                    ChevronHoverBackground: =drpSeatingType.ChevronBackground
+                    ChevronHoverFill: =LookUp(Colors, Color = "Background", RGB)
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: =LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text)
+                    DisplayMode: =If(IsBlank(drpNeighbourhood.SelectedText) || drpNeighbourhood.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BID' = -1, DisplayMode.Disabled, DisplayMode.Edit)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HoverBorderColor: =
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =Self.SelectionFill
+                    Items: =Sort(colSearch_SeatingTypes, If(ID = -1 || ID = -2, "ID", "Result"))
+                    OnChange: =
+                    OnSelect: =If(gblCalendarVisible, true, Set(gblCalendarVisible, false))
+                    PaddingBottom: =drpRegion.PaddingBottom
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PaddingRight: =drpRegion.PaddingRight
+                    PaddingTop: =drpRegion.PaddingTop
+                    PressedBorderColor: =
+                    PressedColor: =drpSeatingType.Color
+                    PressedFill: =drpSeatingType.Fill
+                    SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+                    SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    Size: =drpRegion.Size
+                    Width: =drpRegion.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpNeighbourhood.Y + 
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        )
+                    ZIndex: =15
+
+                lblSeatingType As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.seatingtype.title" && language.Value = gblAppUserLang, text)
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =drpSeatingType.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =16
+
+                lblPreviewSeatingTypes As label:
+                    Align: =Align.Right
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0,0,0,0)
+                    Color: =LookUp(Colors, Color = "Muted Primary Text", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =50
+                    HoverBorderColor: =RGBA(0,0,0,0)
+                    HoverColor: =LookUp(Colors, Color = "Primary", RGB)
+                    HoverFill: =RGBA(0,0,0,0)
+                    OnSelect: =Navigate('Seating Types Screen')
+                    Size: =drpRegion.Size
+                    TabIndex: =0
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.seatingtype.preview" && language.Value = gblAppUserLang, text)
+                    Tooltip: =
+                    Underline: =true
+                    Width: =Self.Size * Len(Self.Text) * 0.7
+                    X: |-
+                        =/*icoSeatingTypeEyeLinkSS.X - Self.Width - 
+                        Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )*/
+                        drpSeatingType.X + drpSeatingType.Width - Self.Width
+                    Y: |-
+                        =drpSeatingType.Y  - 
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =17
+
+            Date As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =26
+
+                sldrUpdateDateSelected As slider:
+                    Default: |-
+                        =If(IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit),
+                        	Substitute(txtDatePickerInput.Text, "-", ""),
+                            Len(txtDatePickerInput.Text)
+                        )
+                    HandleSize: =0
+                    Height: =0
+                    Max: =99999999
+                    OnChange: |-
+                        =If(!IsBlank(txtDatePickerInput.Text),
+                            //Check the DatePicker for the correct format of YYYY-MM-DD
+                            If(IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit),
+                                //Check the selected year
+                                If(Value(Left(txtDatePickerInput.Text, 4)) >= Year(Today()),
+                                    //Check the selected month
+                                    If(Value(Mid(txtDatePickerInput.Text, 6, 2)) <= 12 && Value(Mid(txtDatePickerInput.Text, 6, 2)) >= 1,
+                                        //Check the selected day
+                                        If(Value(Right(txtDatePickerInput.Text, 2)) <= Day(DateAdd(DateAdd(DateAdd(Today(), 1 - Day(Today()), Days), 1, Months), -1, Days)) && Value(Right(txtDatePickerInput.Text, 2)) >= 1,
+                                            //Update the dae selected variable
+                                            Set(gblDateSelected, txtDatePickerInput.Text);
+                        
+                                            If(DateValue(gblDateSelected) >= Today() && DateValue(gblDateSelected) <= DateAdd(Today(), 7),
+                                                //Set the default option for the Time Range field
+                                                ClearCollect(
+                                                    colSearch_TimeRanges,
+                                                    If(
+                                                        gblAppUserLang = "en",
+                                                        AddColumns(Filter(colTimeslots, time_range_en = "ALL DAY"), "Result", ThisRecord.time_range_en),
+                                                        AddColumns(Filter(colTimeslots, time_range_en = "ALL DAY"), "Result", ThisRecord.time_range_fr)
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    RailThickness: =0
+                    ShowValue: =false
+                    TabIndex: =-1
+                    Visible: =false
+                    Width: =0
+                    X: =lblDate.X
+                    Y: =lblDate.Y + 1
+                    ZIndex: =6
+
+                sldrTriggerDateError As slider:
+                    Default: |-
+                        =If(IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit),
+                        	Substitute(txtDatePickerInput.Text, "-", ""),
+                            Len(txtDatePickerInput.Text)
+                        )
+                    HandleSize: =0
+                    Height: =0
+                    Max: =99999999
+                    OnChange: |-
+                        =//Check the DatePicker for a blank value
+                        If(!IsBlank(txtDatePickerInput.Text),
+                            
+                            //Check the DatePicker for the correct format of YYYY-MM-DD
+                            If(IsMatch(txtDatePickerInput.Text, Digit & Digit & Digit & Digit & Hyphen & Digit & Digit & Hyphen & Digit & Digit),
+                                
+                                //Validate the selected month
+                                If(Value(Mid(txtDatePickerInput.Text, 6, 2)) > 12 || Value(Mid(txtDatePickerInput.Text, 6, 2)) < 1,
+                                    
+                                    UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.datepicker.invalidmonth" && language.Value = gblAppUserLang, text)});
+                                    Notify("Date - " & locDateError, NotificationType.Error, 10000);             
+                                    SetFocus(txtDatePickerInput),
+                                    
+                                    //Validate the selected day
+                                    If(Value(Right(txtDatePickerInput.Text, 2)) > 31 || Value(Right(txtDatePickerInput.Text, 2)) < 1,
+                                        
+                                        UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.datepicker.invalidday" && language.Value = gblAppUserLang, text)});
+                                        Notify("Date - " & locDateError, NotificationType.Error, 10000);
+                                        SetFocus(txtDatePickerInput),
+                                        
+                                        
+                                        
+                                        //Check that the selected day is not before today
+                                        If(DateValue(txtDatePickerInput.Text) < Today(), 
+                                                
+                                            UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.date.error.past" && language.Value = gblAppUserLang, text)});
+                                            Notify("Date - " & locDateError, NotificationType.Error, 10000);                        
+                                            SetFocus(txtDatePickerInput),
+                                            
+                                            
+                                            //Since selected date is not in the past, check if it is a valid date in the future
+                                            If(Value(Right(txtDatePickerInput.Text, 2)) > Day(DateAdd(DateAdd(DateAdd(Today(), 1 - Day(Today()), Days), 1, Months), -1, Days)) || Value(Right(txtDatePickerInput.Text, 2)) < 1,
+                                                    
+                                                    UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.datepicker.invalidday" && language.Value = gblAppUserLang, text)});
+                                                    Notify("Date - " & locDateError, NotificationType.Error, 10000); 
+                                                    SetFocus(txtDatePickerInput),
+                                                
+                                                    //Check if the date is in the future
+                                                    If(DateValue(txtDatePickerInput.Text) > DateAdd(Today(), 7),
+                                                    
+                                                        UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.date.error.future" && language.Value = gblAppUserLang, text)});
+                                                        Notify("Date - " & locDateError, NotificationType.Error, 10000); 
+                                                        SetFocus(txtDatePickerInput),
+                        
+                                                        UpdateContext({locDateErrorExists: false, locDateError: ""})
+                                                    
+                                                    )
+                                            )
+                                        )
+                                    )
+                                ),
+                        
+                                //If the text is 10 characters long and it doesn't match the correct format of YYYY-MM-DD
+                                If(Len(txtDatePickerInput.Text) = 10,
+                                    
+                                    UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.datepicker.keyboardinput" && language.Value = gblAppUserLang, text)});
+                                    Notify("Date - " & locDateError, NotificationType.Error, 10000); 
+                                    SetFocus(txtDatePickerInput),
+                        
+                                    UpdateContext({locDateErrorExists: false, locDateError: ""})
+                                )
+                            ),
+                            UpdateContext({locDateErrorExists: false, locDateError: ""})
+                        )
+                    RailThickness: =0
+                    ShowValue: =false
+                    TabIndex: =-1
+                    Visible: =false
+                    Width: =0
+                    X: =lblDate.X
+                    Y: =lblDate.Y + 1
+                    ZIndex: =7
+
+                shpErrorBackground As rectangle:
+                    BorderColor: =LookUp(Colors, Color = "Error Primary", RGB)
+                    BorderThickness: |-
+                        =2 * Switch(
+                            Value(lblScreenWidthSizingSS.Text),
+                            ScreenSize.Small,
+                            1,
+                            ScreenSize.Medium,
+                            1.25,
+                            ScreenSize.Large,
+                            1.5,
+                            1.75
+                        )
+                    Fill: =LookUp(Colors, Color = "Error Secondary", RGB)
+                    Height: =lblDateError.Height * 2
+                    Visible: =If(lblDateError.Text <> "", true, false)
+                    Width: =txtDatePickerInput.Width
+                    X: =txtDatePickerInput.X
+                    Y: =txtDatePickerInput.Y + txtDatePickerInput.Height
+                    ZIndex: =9
+
+                lblDateError As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Error Primary", RGB)
+                    Font: =Font.Lato
+                    Height: =0
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =25
+                    PaddingRight: =25
+                    PaddingTop: =0
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            16 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )    
+                    Text: =locDateError
+                    Width: =txtDatePickerInput.Width
+                    X: =shpErrorBackground.X
+                    Y: =shpErrorBackground.Y + shpErrorBackground.Height/2 - Self.Height/2
+                    ZIndex: =10
+
+                lblDate As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =50
+                    Size: =lblRegion.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.date.title" && language.Value = gblAppUserLang, text) //& " (MM/DD/YYYY)"
+                    Width: =Self.Size * Len(Self.Text)
+                    X: =lblRegion.X
+                    Y: |-
+                        =txtDatePickerInput.Y  -
+                        Min(50 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            50 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    ZIndex: =11
+
+                cmpCalendarDatePicker As cmp_CalendarDatePicker:
+                    AppLang: =gblAppUserLang
+                    DisabledColor: =LookUp(Colors, Color = "Grey", RGB)
+                    FocusColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+                    ScreenSize_Height: =cmpScreenFunctionsSS.ScreenSize
+                    ScreenSize_Width: =Value(lblScreenWidthSizingSS.Text)
+                    SecondaryColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+                    TranslationNextMonth: =LookUp(colTranslationTable, key = "bookingsearch.date.nextmonth" && language.Value = gblAppUserLang, text)
+                    TranslationPreviousMonth: =LookUp(colTranslationTable, key = "bookingsearch.date.previousmonth" && language.Value = gblAppUserLang, text)
+                    Width: |-
+                        =Min(640 * Switch(cmpCalendarDatePicker.ScreenSize_Width,  
+                                ScreenSize.Small, 0.5,  
+                                ScreenSize.Medium, 0.75,  
+                                ScreenSize.Large, 1,
+                                1.25),
+                            640 * Switch(cmpCalendarDatePicker.ScreenSize_Height, 
+                                ScreenSize.Small, 0.5,  
+                                ScreenSize.Medium, 0.75,  
+                                ScreenSize.Large, 1,
+                                1.25)
+                        ) + 
+                        Min(2 * Switch(cmpCalendarDatePicker.ScreenSize_Width,  
+                                ScreenSize.Small, .75,  
+                                ScreenSize.Medium, 1,  
+                                ScreenSize.Large, 1.25,
+                                1.5),
+                            2 * Switch(cmpCalendarDatePicker.ScreenSize_Height, 
+                                ScreenSize.Small, .75,  
+                                ScreenSize.Medium, 1,  
+                                ScreenSize.Large, 1.25,
+                                1.5)
+                        )
+                    X: =txtDatePickerInput.X + txtDatePickerInput.Width - Self.Width
+                    Y: =txtDatePickerInput.Y + txtDatePickerInput.Height + txtDatePickerInput.BorderThickness 
+                    ZIndex: =12
+
+                txtDatePickerInput As text:
+                    AccessibleLabel: =//LookUp(colTranslationTable, key = "bookingsearch.datepicker.keyboardinput" && language.Value = gblAppUserLang, text)
+                    BorderColor: =If(locDateErrorExists, LookUp(Colors, Color = "Error Primary", RGB), ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%))
+                    BorderThickness: =drpRegion.BorderThickness
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Default: |-
+                        =Switch(gblAppUserLang, "fr", 
+                            Text(DateValue(gblDateSelected),
+                            "[$-en-US]yyyy-mm-dd",
+                            "fr-FR"),     
+                            
+                            Text(DateValue(gblDateSelected),
+                            "[$-en-US]yyyy-mm-dd",
+                            "en-CA"
+                        ))
+                    DisplayMode: =If(IsBlank(drpSeatingType.SelectedText) || drpSeatingType.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text), DisplayMode.Disabled, DisplayMode.Edit)
+                    Fill: =Color.White
+                    FocusedBorderColor: =If(locDateErrorExists, LookUp(Colors, Color = "Error Primary", RGB), LookUp(Colors, Color = "Focus Primary", RGB))
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Font: =Font.Lato
+                    Height: =drpRegion.Height
+                    HintText: |
+                        =If(Self.DisplayMode = DisplayMode.Edit, 
+                            LookUp(colTranslationTable, key = "bookingsearch.date.aria" && language.Value = gblAppUserLang, text), 
+                            ""
+                        )
+                    HoverBorderColor: =Self.BorderColor
+                    HoverColor: =LookUp(Colors, Color = "Background", RGB)
+                    HoverFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    MaxLength: =10
+                    OnChange: |-
+                        =Set(gblCalendarVisible, false);
+                        
+                        If(Len(txtDatePickerInput.Text) > 0 && Len(txtDatePickerInput.Text) < 10,
+                            UpdateContext({locDateErrorExists: true, locDateError: LookUp(colTranslationTable, key = "bookingsearch.datepicker.keyboardinput" && language.Value = gblAppUserLang, text)});
+                            Notify("Date - " & locDateError, NotificationType.Error, 10000); 
+                            SetFocus(txtDatePickerInput),
+                        
+                            UpdateContext({locDateErrorExists: false, locDateError: ""})
+                        )
+                    PaddingLeft: =drpRegion.PaddingLeft
+                    PressedBorderColor: =Self.BorderColor
+                    PressedColor: =LookUp(Colors, Color = "Background", RGB)
+                    PressedFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =drpRegion.Size
+                    Width: =drpRegion.Width
+                    X: =drpRegion.X
+                    Y: |-
+                        =drpSeatingType.Y + 
+                        Min(150 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45),
+                             150 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.125,  
+                                ScreenSize.Large, 1.25,
+                                1.45)   
+                        )
+                    ZIndex: =13
+
+                imgDatePickerCalendar As image:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingsearch.datepicker.opencalendar" && language.Value = gblAppUserLang, text)
+                    AutoDisableOnSelect: =false
+                    BorderColor: =RGBA(0,0,0,0)
+                    DisplayMode: =If(IsBlank(drpSeatingType.SelectedText) || drpSeatingType.SelectedText.'data-ADB4D7A662F548B49FAC2B986E348A1BResult' = LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text), DisplayMode.Disabled, DisplayMode.Edit)
+                    Fill: =Color.White
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2.5 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Height: =txtDatePickerInput.Height - txtDatePickerInput.BorderThickness*2
+                    HoverFill: =ColorFade(Self.Fill, -10%)
+                    Image: =If(Self.DisplayMode = DisplayMode.Disabled, 'calendar (grey)', 'calendar (purple)')
+                    OnSelect: |-
+                        =If(gblCalendarVisible,
+                            Set(gblCalendarVisible, false);
+                            SetFocus(Self),
+                        
+                            Set(gblFirstDayOfMonth, DateAdd(Today(), 1 - Day(Today()), Days));         
+                            Set(gblFirstDayInView, DateAdd(gblFirstDayOfMonth, -(Weekday(gblFirstDayOfMonth) - 2 + 1), Days));         
+                            Set(gblLastDayOfMonth, DateAdd(DateAdd(gblFirstDayOfMonth, 1, Months), -1, Days));                          
+                            Set(gblMinDate, DateAdd(gblFirstDayOfMonth, -(Weekday(gblFirstDayOfMonth) - 2 + 1), Days));         
+                            Set(gblMaxDate, DateAdd(DateAdd(gblFirstDayOfMonth, -(Weekday(gblFirstDayOfMonth) - 2 + 1), Days), 40, Days));
+                            Set(gblCalendarVisible, true);  
+                            SetFocus(Self);              
+                        )
+                    PaddingBottom: =Self.PaddingTop
+                    PaddingLeft: =Self.PaddingTop
+                    PaddingRight: =Self.PaddingTop
+                    PaddingTop: |
+                        =Min(12 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            12 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                            )
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(20 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            20 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    TabIndex: =0
+                    Width: =Self.Height
+                    X: |-
+                        =txtDatePickerInput.X + txtDatePickerInput.Width - Self.Width - 
+                        Min(2 * Switch(Value(lblScreenWidthSizingSS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            2 * Switch(cmpScreenFunctionsSS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                        )
+                    Y: =txtDatePickerInput.Y + txtDatePickerInput.Height/2 - Self.Height/2
+                    ZIndex: =14
+
+    cmpNavSS As cmp_MainNav:
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                10 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        Height: |-
+            =Min(86 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                86 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        MutedColor: =LookUp(Colors, Color = "Grey", RGB)
+        NavigateToText: =LookUp(colTranslationTable, key = "nav.navigate" && language.Value = gblAppUserLang, text)
+        NavItems: |-
+            =Table(
+                {
+                    Key: "profile",
+                    Label: gblAppUserDetails.givenName,
+                    NavigationLink: 'My Profile Screen'
+                },
+                {
+                    Key: "newBooking",
+                    Label: LookUp(colTranslationTable, key = "nav.book" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'Search Screen'
+                },
+                {
+                    Key: "bookings",
+                    Label: LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'My Bookings Screen'
+                }
+            )
+        ScreenSize_Height: =cmpScreenFunctionsSS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingSS.Text)
+        SelectedItem: ="newBooking"
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =App.Height-cmpNavSS.Height
+        ZIndex: =6
+
+    lblSearchFormHeadingSS As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "bookingsearch.form" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropSS.X
+        Y: =canScrollableCanvasSS.Y
+        ZIndex: =7
+
+    cmpHeaderSS As cmp_PageHeading:
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HasBackBtn: =false
+        HeadingText: =LookUp(colTranslationTable, key = "bookingsearch.heading" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsSS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropSS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsSS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingSS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =9
+
+    cmpErrorModalSS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: =LookUp(colTranslationTable, key = "errorpage.subtitle" && language.Value = gblAppUserLang, text)
+        Display_ErrorTitle: =LookUp(colTranslationTable, key = "errorpage.title" && language.Value = gblAppUserLang, text)
+        Height: =shpPageBackdropPS.Height
+        ModalHeight: =shpPageBackdropPS.Height
+        ModalWidth: =shpPageBackdropPS.Width
+        ScreenSize_Height: =cmpScreenFunctionsPS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingPS.Text
+        Visible: =locIsErrorModalVisible
+        Width: =shpPageBackdropPS.Width
+        X: =shpPageBackdropPS.X
+        Y: =shpPageBackdropPS.Y
+        ZIndex: =10
+
+    grpScreenSizingSS As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =12
+
+        lblScreenWidthSizingSS As label:
+            DisplayMode: =DisplayMode.Disabled
+            Height: =0
+            Role: =""
+            Size: =0
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropSS.X + shpPageBackdropSS.Width
+            Y: =shpPageBackdropSS.Y + shpPageBackdropSS.Height
+            ZIndex: =1
+
+        cmpScreenFunctionsSS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            Visible: =false
+            X: =shpPageBackdropSS.X + shpPageBackdropSS.Width
+            Y: =shpPageBackdropSS.Y + shpPageBackdropSS.Height
+            ZIndex: =4
+

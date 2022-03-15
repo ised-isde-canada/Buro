@@ -1,0 +1,151 @@
+cmp_PageHeading As CanvasComponent:
+    BackgroundColor: =Color.White
+    BackNavigateTo: |-
+        =Table({ Key: "blank", NavigationLink: App.ActiveScreen})
+    BackText: ="Back"
+    Fill: =Self.BackgroundColor
+    FocusedColor: =RGBA(0, 0, 0, 1)
+    FontSize: =37
+    HasBackBtn: =true
+    HeadingText: ="Text"
+    Height: =114
+    PositionOffset: =55
+    PrimaryColor: =Color.Blue
+    ScreenSize_Height: =1
+    ScreenSize_Width: =1
+    SecondaryColor: =RGBA(245, 247, 255, 1)
+    Width: =App.Width
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    lblHeadingText As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =cmp_PageHeading.PrimaryColor
+        DisplayMode: =DisplayMode.View
+        Font: =Font.'Lato Black'
+        FontWeight: =FontWeight.Semibold
+        Height: =75
+        Live: =Live.Assertive
+        Role: =TextRole.Heading1
+        Size: |-
+            =//cmp_PageHeading.FontSize
+            If( (Len(cmp_PageHeading.HeadingText) * cmp_PageHeading.FontSize > Self.Width),
+                (Self.Width/Len(cmp_PageHeading.HeadingText) * 1.125),
+                cmp_PageHeading.FontSize
+            )
+        Text: =cmp_PageHeading.HeadingText
+        Tooltip: =cmp_PageHeading.HeadingText & " Page"
+        Width: |-
+            =
+            If(!cmp_PageHeading.HasBackBtn,
+                cmp_PageHeading.Width - 
+                Min(30 * Switch(cmp_PageHeading.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                30 * Switch(cmp_PageHeading.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+                ),
+                (cmp_PageHeading.Width)- (icoBackButton.X + icoBackButton.Width) * 2
+            )
+        X: |-
+            =//Parent.Width/11.6
+            (cmp_PageHeading.Width/2 - Self.Width/2)
+        Y: =icoBackButton.Y + icoBackButton.Height/2 - Self.Height/2
+        ZIndex: =3
+
+    icoBackButton As image:
+        AccessibleLabel: =cmp_PageHeading.BackText
+        BorderColor: =RGBA(0,0,0,0)
+        Fill: =cmp_PageHeading.SecondaryColor
+        FocusedBorderColor: =cmp_PageHeading.FocusedColor
+        FocusedBorderThickness: |
+            =Min(2.5 * Switch(cmp_PageHeading.ScreenSize_Width,
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75),
+                2.5 * Switch(cmp_PageHeading.ScreenSize_Height,
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75)
+            )
+        Height: =Self.Width
+        HoverBorderColor: =RGBA(0,0,0,0)
+        HoverFill: =RGBA(0,0,0,0.1)
+        Image: ='back_arrow (grey)'
+        OnSelect: |-
+            =If(
+                CountRows(
+                    Filter(
+                        cmp_PageHeading.BackNavigateTo,
+                        Key = "navto"
+                    )
+                ) > 0,
+                Navigate(
+                    LookUp(
+                        cmp_PageHeading.BackNavigateTo,
+                        Key = "navto",
+                        NavigationLink
+                    ),
+                    ScreenTransition.UnCoverRight
+                ),
+                Back(ScreenTransition.UnCoverRight)
+            )
+        PaddingBottom: =Self.PaddingTop
+        PaddingLeft: =Self.PaddingTop
+        PaddingRight: =Self.PaddingTop
+        PaddingTop: |
+            =Min(6 * Switch(cmp_PageHeading.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                6 * Switch(cmp_PageHeading.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        PressedBorderColor: =RGBA(0,0,0,0)
+        PressedFill: =Self.HoverFill
+        RadiusBottomLeft: =Self.RadiusTopLeft
+        RadiusBottomRight: =Self.RadiusTopLeft
+        RadiusTopLeft: |-
+            =Min(10 * Switch(cmp_PageHeading.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                10 * Switch(cmp_PageHeading.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        RadiusTopRight: =Self.RadiusTopLeft
+        TabIndex: =0
+        Visible: =If(cmp_PageHeading.HasBackBtn, true, false)
+        Width: |-
+            =Min(45 * Switch(cmp_PageHeading.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                45 * Switch(cmp_PageHeading.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        X: =cmp_PageHeading.PositionOffset
+        Y: =cmp_PageHeading.Height/2 - Self.Height/2
+        ZIndex: =10
+

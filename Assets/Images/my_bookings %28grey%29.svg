@@ -1,0 +1,14 @@
+<svg width="16.343" height="17.738" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.a{fill:none;stroke:#626262;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}</style>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_1">
+   <path class="a" d="m10.961,12.705l-6.277,0" id="svg_2"/>
+   <path class="a" d="m10.961,9.218l-6.277,0" id="svg_3"/>
+   <path class="a" d="m7.474,5.033l-2.79,0" id="svg_4"/>
+   <path class="a" d="m11.693,0.5l-7.079,0a3.888,3.888 0 0 0 -4.114,4.188l0,8.361a3.891,3.891 0 0 0 4.148,4.188l7.079,0a3.889,3.889 0 0 0 4.115,-4.186l0,-8.363a3.892,3.892 0 0 0 -4.149,-4.188z" id="svg_5"/>
+  </g>
+ </g>
+</svg>

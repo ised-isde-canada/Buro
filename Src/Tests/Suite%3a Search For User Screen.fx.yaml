@@ -1,0 +1,305 @@
+"'57e2e9d1-2aa2-4a3a-82d2-33ebba738a1b' As TestSuite":
+    Description: =""
+    DisplayName: |-
+        ="Suite: Search For User Screen"
+
+    "'42f04fbb-2d23-4f59-a5bb-7a50a17b3bdf' As TestCase":
+        Description: ="Verify the error message text displayed when no users are found"
+        DisplayName: |-
+            ="Case: Search - No Users Match Search Criteria"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Screen: =Search Screen
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Set the search bar's text to something random"
+            Screen: =Search For User Screen
+            Value: =SetProperty(txtSearchForUserSFUS.Text, "doiwjadoiawjdwijd")
+
+        Step5 As TestStep:
+            Description: ="Select the search button"
+            Value: |
+                =Select(imgSearchButtonSFUS)
+
+        Step4 As TestStep:
+            Description: ="Verify that the error message is the correct one"
+            Value: |-
+                =Assert(lblRefineSearchSFUS.Text = LookUp(colTranslationTable, key = "searchforuser.nousersfound" && language.Value = gblAppUserLang, text), "Expected : " & LookUp(colTranslationTable, key = "searchforuser.nousersfound" && language.Value = gblAppUserLang, text) & ", Actual : " & lblRefineSearchSFUS.Text)
+
+        Step3 As TestStep:
+            Description: ="Verify that the Back to Review button is not displayed"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(btnBackToReviewSFUS.Visible, "Expected: true, Actual: " & btnBackToReviewSFUS.Visible)
+
+    "'03a2f03d-d858-46b9-a68d-96af7734e5dd' As TestCase":
+        Description: ="Verify that the current user is not available to be found in the search results"
+        DisplayName: |-
+            ="Case: Search - Self is Hidden From Results"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Set search bar text to ""Last Name"""
+            Screen: =Search For User Screen
+            Value: =SetProperty(txtSearchForUserSFUS.Text, gblAppUserDetails.surname)
+
+        Step4 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step3 As TestStep:
+            Description: ="Verify that the gallery is empty or does not contain the current use"
+            Screen: =Search For User Screen
+            Value: =Assert( (CountRows(galFoundUsersSFUS.AllItems) = 0 && lblRefineSearchSFUS.Text = LookUp(colTranslationTable, key = "searchforuser.nousersfound" && language.Value = gblAppUserLang, text)) || ( CountRows(galFoundUsersSFUS.AllItems) > 0 && Not(Lower(gblAppUserDetails.mail) in Lower(galFoundUsersSFUS.AllItems.Mail))))
+
+    "'9cb7a919-d5d3-421f-b096-ee40cb79b0d1' As TestCase":
+        Description: ="Verify the text displayed as hint text in the search bar"
+        DisplayName: |-
+            ="Case: Search Bar - Hint Text"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Verify the search bar hint text"
+            Value: |-
+                =Assert(txtSearchForUserSFUS.HintText = LookUp(colTranslationTable, key = "reviewbooking.search.hint" && language.Value = gblAppUserLang, text), "Expected: " & LookUp(colTranslationTable, key = "reviewbooking.search.hint" && language.Value = gblAppUserLang, text) & ", Actual: " & txtSearchForUserSFUS.HintText)
+
+    "'6787ef1a-aa95-4cbf-bb85-a681e614a61d' As TestCase":
+        Description: ="Verify on screen load the default text that is displayed"
+        DisplayName: |-
+            ="Case: Default Message in Modal"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Verify that the default message is the correct one"
+            Value: |-
+                =Assert(lblRefineSearchSFUS.Text = LookUp(colTranslationTable, key = "searchforuser.refinesearch" && language.Value = gblAppUserLang, text), "Expected : " & LookUp(colTranslationTable, key = "searchforuser.refinesearch" && language.Value = gblAppUserLang, text) & ", Actual : " & lblRefineSearchSFUS.Text)
+
+        Step3 As TestStep:
+            Description: ="Verify that the Back to Review button is displayed"
+            Value: |-
+                =Assert(btnBackToReviewSFUS.Visible = true, "Expected: true, Actual: " & btnBackToReviewSFUS.Visible)
+
+    "'68de3fc1-c395-4ffb-8da9-268b7ca6aa66' As TestCase":
+        Description: ="Verify after clearing searching and clearing the search that the same on screen load text is displayed"
+        DisplayName: |-
+            ="Case: Case: Default Message in Modal Displayed After Search is Cleared"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('Search For User Screen')
+
+        Step4 As TestStep:
+            Description: ="Set search bar text to ""Test Test Test"""
+            Value: =SetProperty(txtSearchForUserSFUS.Text, "TestTestTestTest")
+
+        Step5 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step6 As TestStep:
+            Description: ="Select the clear search button"
+            Value: =Select(imgClearSearch)
+
+        Step2 As TestStep:
+            Description: ="Verify that the default message is the correct one"
+            Value: |-
+                =Assert(lblRefineSearchSFUS.Text = LookUp(colTranslationTable, key = "searchforuser.refinesearch" && language.Value = gblAppUserLang, text), "Expected : " & LookUp(colTranslationTable, key = "searchforuser.refinesearch" && language.Value = gblAppUserLang, text) & ", Actual : " & lblRefineSearchSFUS.Text)
+
+        Step3 As TestStep:
+            Description: ="Verify that the Back to Review button is displayed"
+            Value: |-
+                =Assert(btnBackToReviewSFUS.Visible = true, "Expected: true, Actual: " & btnBackToReviewSFUS.Visible)
+
+    "'1aced5e5-e561-4443-8906-7fc4436225e4' As TestCase":
+        Description: ="Verify the error message text displayed when no users are found"
+        DisplayName: |-
+            ="Case: Search - One Word Search Verification"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Screen: =Search Screen
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Set the search bar's text to the most common name"
+            Screen: =Search For User Screen
+            Value: =SetProperty(txtSearchForUserSFUS.Text, "Smith")
+
+        Step5 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step3 As TestStep:
+            Description: ="Verify there are results"
+            Value: |-
+                =Assert(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id), "Expected: true, Actual: " & Text(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id)))
+
+        Step4 As TestStep:
+            Description: ="Verify that the Back to Review button is not displayed"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(btnBackToReviewSFUS.Visible = false, "Expected: true, Actual: " & btnBackToReviewSFUS.Visible)
+
+    "'426ccd60-186f-456c-b4e5-f3c71796a66d' As TestCase":
+        Description: ="Go to the Search For User Screen, search a colleague's First Name, verify they are in the results, clear the search, search for the colleague's Last Name, verify they are there, ensure no results are displayed"
+        DisplayName: |-
+            ="Case: Search - First Name or Last Name Search"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Screen: =Search Screen
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Get the name of a Smith"
+            Screen: =Search For User Screen
+            Value: |-
+                =Set(TestAccountSmith, First(Office365Users.SearchUserV2({searchTerm: "Smith", top: 1 }).value));
+
+        Step3 As TestStep:
+            Description: ="Set the search text to [First Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.GivenName)
+
+        Step9 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step6 As TestStep:
+            Description: ="Verify the gallery of found users is not empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id), "Expected: true, Actual: " & Text(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id)))
+
+        Step7 As TestStep:
+            Description: ="Verify the user searched for is in the gallery"
+            Value: |-
+                =Assert(!IsEmpty(Filter(galFoundUsersSFUS.AllItems, Mail = TestAccountSmith.Mail)), "Expected: true, Actual: " & !IsEmpty(Filter(galFoundUsersSFUS.AllItems, Mail = TestAccountSmith.Mail)))
+
+        Step5 As TestStep:
+            Description: ="Set the search text to [Last Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.Surname)
+
+        Step10 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step8 As TestStep:
+            Description: ="Verify the gallery of found users is not empty"
+            Value: |-
+                =Assert(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id), "Expected: true, Actual: " & Text(CountRows(galFoundUsersSFUS.AllItems) >= 1 && !IsBlank(First(galFoundUsersSFUS.AllItems).Id)))
+
+        Step4 As TestStep:
+            Description: ="Verify the user searched for is in the gallery"
+            Value: |-
+                =Assert(!IsEmpty(Filter(galFoundUsersSFUS.AllItems, Mail = TestAccountSmith.Mail)), "Expected: true, Actual: " & !IsEmpty(Filter(galFoundUsersSFUS.AllItems, Mail = TestAccountSmith.Mail)))
+
+    "'15f80d11-b929-4cbd-ae70-c8eeb6964c8e' As TestCase":
+        Description: ="Go to the Search For User Screen, test combinations of First Name and Last Name, ensure no results are displayed"
+        DisplayName: |-
+            ="Case: Search - Full Name Combination Search"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search For User Screen"
+            Value: =Navigate('Search For User Screen')
+
+        Step2 As TestStep:
+            Description: ="Get the name of a Smith"
+            Value: |-
+                =Set(TestAccountSmith, First(Office365Users.SearchUserV2({searchTerm: "Smith", top: 1 }).value));
+
+        Step3 As TestStep:
+            Description: ="Set the search text to [First Name] + "", "" + [Last Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.GivenName & ", " & TestAccountSmith.Surname)
+
+        Step15 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step4 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+
+        Step5 As TestStep:
+            Description: ="Set the search text to [First Name] + "" "" + [Last Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.GivenName & " " & TestAccountSmith.Surname)
+
+        Step16 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step7 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+
+        Step6 As TestStep:
+            Description: ="Set the search text to [First Name] + "","" + [Last Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.GivenName & "," & TestAccountSmith.Surname)
+
+        Step17 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step8 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+
+        Step9 As TestStep:
+            Description: ="Set the search text to [Last Name] + "", "" + [First Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.Surname & ", " & TestAccountSmith.GivenName)
+
+        Step18 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step10 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+
+        Step11 As TestStep:
+            Description: ="Set the search text to [Last Name] + "" "" + [First Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.Surname & " " & TestAccountSmith.GivenName)
+
+        Step19 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step12 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+
+        Step13 As TestStep:
+            Description: ="Set the search text to [Last Name] + "","" + [First Name]"
+            Value: =SetProperty(txtSearchForUserSFUS.Text, TestAccountSmith.Surname & "," & TestAccountSmith.GivenName)
+
+        Step20 As TestStep:
+            Description: ="Select the search button"
+            Value: =Select(imgSearchButtonSFUS)
+
+        Step14 As TestStep:
+            Description: ="Verify the gallery of found users is not visible becuase it is empty"
+            Screen: =Search For User Screen
+            Value: |-
+                =Assert(!galFoundUsersSFUS.Visible, "Expected: true, Actual: " & !galFoundUsersSFUS.Visible)
+

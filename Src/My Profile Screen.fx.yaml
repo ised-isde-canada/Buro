@@ -1,0 +1,869 @@
+"'My Profile Screen' As screen":
+    Fill: =LookUp(Colors, Color = "Background", RGB)
+    Height: =App.Height
+    OnVisible: |
+        =//Hide the error modal until an error arises
+        UpdateContext({locIsErrorModalVisible: false});
+        ClearCollect(
+            colAppLinks,
+            {
+                title: "myprofile.links.contactus",
+                external_link: false,
+                link: Blank(),
+                screen: 'Contact Us Screen',
+                row_number: 1
+            },
+            {
+                title: "myprofile.links.feedback",
+                external_link: true,
+                link: Switch(gblAppUserLang, "fr", "https://forms.office.com/Pages/ResponsePage.aspx?id=L8Yqt9UG1UyCTu6SMZpGdox_Rb4oSqRAq_ow_cyla3dUMFJOOVJQUktDQ0kxMkM0VkpEREM4OEFIOC4u", "https://forms.office.com/Pages/ResponsePage.aspx?id=L8Yqt9UG1UyCTu6SMZpGdox_Rb4oSqRAq_ow_cyla3dUMzcxMDE5TEg5QTlFMDA0SERHVzdINDhWSi4u"),
+                screen: Blank(),
+                row_number: 2
+            },
+            {
+                title: "myprofile.links.privacyandtoc",
+                external_link: true,
+                link: Switch(
+                    gblAppUserLang,
+                    "fr",
+                    "https://www.ic.gc.ca/eic/site/icgc.nsf/fra/h_07033.html",
+                    "https://www.ic.gc.ca/eic/site/icgc.nsf/eng/h_07033.html"
+                ),
+                screen: Blank(),
+                row_number: 3
+            }
+        );
+    Width: =App.Width
+
+    shpScreenBackdropPS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropPS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: |
+            =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    cmpNavPS As cmp_MainNav:
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                10 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        Height: |-
+            =Min(107.5 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.2,
+                    ScreenSize.Large, 1.4,  
+                    1.6),
+                107.5 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.2,
+                    ScreenSize.Large, 1.4,  
+                    1.6)
+            )
+        IconSize: |
+            =Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        MutedColor: =LookUp(Colors, Color = "Grey", RGB)
+        NavigateToText: =LookUp(colTranslationTable, key = "nav.navigate" && language.Value = gblAppUserLang, text)
+        NavItems: |-
+            =Table(
+                {
+                    Key: "profile",
+                    Label: gblAppUserDetails.givenName,
+                    NavigationLink: 'My Profile Screen'
+                },
+                {
+                    Key: "newBooking",
+                    Label: LookUp(colTranslationTable, key = "nav.book" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'Search Screen'
+                },
+                {
+                    Key: "bookings",
+                    Label: LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'My Bookings Screen'
+                }
+            )
+        ScreenSize_Height: =cmpScreenFunctionsPS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingPS.Text)
+        SelectedItem: ="profile"
+        Visible: =true
+        Width: |-
+            =If(
+            Parent.Size <> ScreenSize.ExtraLarge,
+            App.Width-4,
+            (App.DesignWidth*2)-4
+            )
+        X: =(Parent.Width-Self.Width) /2
+        Y: =App.Height-cmpNavPS.Height
+        ZIndex: =5
+
+    "galLinks As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
+        Height: |-
+            =(CountRows(colAppLinks) * Self.TemplateHeight) + 
+            (CountRows(colAppLinks) * Min(1 *  Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                1 *  Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            ))
+        ItemAccessibleLabel: =LookUp(colTranslationTable, key = ThisItem.title && language.Value = gblAppUserLang, text)
+        Items: =colAppLinks
+        Layout: =Layout.Vertical
+        NavigationStep: =0
+        OnSelect: |-
+            =If(ThisItem.external_link,
+                Launch(ThisItem.link),
+                Navigate(ThisItem.screen)
+            )
+        ShowScrollbar: =false
+        TemplatePadding: =0
+        TemplateSize: |
+            =Min(120 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.3,  
+                    ScreenSize.Medium, 0.5,
+                    ScreenSize.Large, 0.8,  
+                    1),
+                120 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.3,  
+                    ScreenSize.Medium, 0.5,
+                    ScreenSize.Large, 0.8,  
+                    1)
+            )
+        Width: |-
+            =(If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))
+        X: =shpPageBackdropPS.X + shpPageBackdropPS.Width/2 - Self.Width/2
+        Y: |-
+            =drpLanguage.Y + drpLanguage.Height +
+            Min(40 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.75,  
+                    ScreenSize.Medium, 1,  
+                    ScreenSize.Large, 1.25,
+                    1.75),
+                40 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.75,  
+                    ScreenSize.Medium, 1,  
+                    ScreenSize.Large, 1.25,
+                    1.75)
+            )
+        ZIndex: =6
+
+        shpDividerBottomPS As rectangle:
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            Height: |-
+                =Min(1 * Switch(Value(lblScreenWidthSizingPS.Text),
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    1 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            OnSelect: =Select(Parent)
+            Visible: |-
+                =//To have the divider on the bottom of the last item we check if this is the last item in the list
+                If(Last(colAppLinks).title = ThisItem.title, 
+                    true,
+                    false
+                )
+            Width: =Parent.TemplateWidth
+            Y: =Parent.TemplateHeight - Self.Height
+            ZIndex: =1
+
+        shpDividerTopPS As rectangle:
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            Height: |-
+                =Min(1 * Switch(Value(lblScreenWidthSizingPS.Text),
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    1 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            OnSelect: =Select(Parent)
+            Width: =Parent.TemplateWidth
+            ZIndex: =2
+
+        btnLink As button:
+            Align: =Align.Left
+            BorderColor: =RGBA(0,0,0,0)
+            BorderThickness: =0
+            Color: =LookUp(Colors, Color = "Grey", RGB)
+            Fill: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingPS.Text),
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Font: =Font.Lato
+            Height: =galLinks.TemplateHeight
+            HoverColor: =Self.Color
+            HoverFill: =RGBA(0,0,0,0.1)
+            OnSelect: =Select(Parent)
+            PaddingBottom: =0
+            PaddingLeft: |-
+                =Min (25 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.125,  
+                        ScreenSize.Large, 1.25,
+                        1.5),
+                    25 * Switch(cmpScreenFunctionsPS.ScreenSize, 
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.125,  
+                        ScreenSize.Large, 1.25,
+                        1.5)
+                )
+            PaddingRight: =0
+            PaddingTop: =0
+            PressedColor: =Self.Color
+            PressedFill: =RGBA(0,0,0,0.2)
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Size: |-
+                =Min(16 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.75),
+                    16 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.75) 
+                )
+            Text: =LookUp(colTranslationTable, key = ThisItem.title && language.Value = gblAppUserLang, text)
+            Width: =galLinks.Width - Self.FocusedBorderThickness
+            X: =galLinks.Width/2 - Self.Width/2
+            ZIndex: =3
+
+        imgOpenLinkPS As image:
+            Height: =Self.Width
+            Image: =If(ThisItem.external_link, 'open-link (primary)', 'chevron right (grey)')
+            OnSelect: =Select(Parent)
+            Width: |-
+                =Min(20 *  Switch(Value(lblScreenWidthSizingPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    20 *  Switch(cmpScreenFunctionsPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )  
+            X: |-
+                =Parent.Width - Self.Width - 
+                Min(20 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    20 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.75)
+                )
+            Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            ZIndex: =4
+
+    lblHelpfulLinksSectionHeading As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading3
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "myprofile.linkssection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =lblLanguagePreference.X
+        Y: =drpLanguage.Y + drpLanguage.Height
+        ZIndex: =7
+
+    drpLanguage As dropdown:
+        AccessibleLabel: =LookUp(colTranslationTable, key = "myprofile.language.aria" && language.Value = gblAppUserLang, text)
+        BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+        BorderThickness: |-
+            =Min(2 * Switch(Value(lblScreenWidthSizingPS.Text),
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75),
+                2 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75)
+            )
+        ChevronBackground: =RGBA(0, 0, 0, 0)
+        ChevronFill: =LookUp(Colors, Color = "Grey", RGB)
+        ChevronHoverBackground: =drpLanguage.ChevronBackground
+        ChevronHoverFill: |
+            =LookUp(Colors, Color = "Background", RGB)
+        Color: =LookUp(Colors, Color = "Grey", RGB)
+        Default: =LookUp(LanguageOptions, ShortHand = gblAppUserLang, Language)
+        FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FocusedBorderThickness: |-
+            =Min(2.5 * Switch(Value(lblScreenWidthSizingPS.Text),
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75),
+                2.5 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,
+                    1.75)
+            )
+        Font: =Font.Lato
+        Height: |-
+            =Min(70 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.35),
+                70 * Switch(cmpScreenFunctionsPS.ScreenSize,
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.35)
+            )
+        HoverBorderColor: =Self.BorderColor
+        HoverColor: =LookUp(Colors, Color = "Background", RGB)
+        HoverFill: =Self.SelectionFill
+        Items: =LanguageOptions
+        OnChange: |-
+            =If(gblAppUserLang <> drpLanguage.Selected.ShortHand,
+                Set(
+                    gblAppUserLang,
+                    drpLanguage.Selected.ShortHand
+                );
+                IfError(
+                    Patch(
+                        Users,
+                        LookUp(Users, user_email = Lower(gblAppUserDetails.mail)),
+                        {
+                            language: {
+                                '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                Value: drpLanguage.Selected.Language
+                            }
+                        }
+                    ),
+                    //If there's an error show the component (error modal)
+                    UpdateContext({locIsErrorModalVisible: true});
+                    
+                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                    {   user_email: Lower(gblAppUserDetails.mail), 
+                        error_code: First(Errors(Users)).Error,
+                        error_message: First(Errors(Users)).Message, 
+                        error_log: "Patch (Users, LookUp(Users, user_email = Lower(gblAppUserDetails.mail))) ...",
+                        error_origin: App.ActiveScreen 
+                    }),
+                    {}
+                )
+            );
+            
+            Concurrent(
+                    //Reload the profile page links
+                    ClearCollect(
+                        colAppLinks,
+                        {
+                            title: "myprofile.links.contactus",
+                            external_link: false,
+                            link: Blank(),
+                            screen: 'Contact Us Screen',
+                            row_number: 1
+                        },
+                        {
+                            title: "myprofile.links.feedback",
+                            external_link: true,
+                            link: Switch(gblAppUserLang, "fr", "https://forms.office.com/Pages/ResponsePage.aspx?id=L8Yqt9UG1UyCTu6SMZpGdox_Rb4oSqRAq_ow_cyla3dUMFJOOVJQUktDQ0kxMkM0VkpEREM4OEFIOC4u", "https://forms.office.com/Pages/ResponsePage.aspx?id=L8Yqt9UG1UyCTu6SMZpGdox_Rb4oSqRAq_ow_cyla3dUMzcxMDE5TEg5QTlFMDA0SERHVzdINDhWSi4u"),
+                            screen: Blank(),
+                            row_number: 2
+                        },
+                        {
+                            title: "myprofile.links.privacyandtoc",
+                            external_link: true,
+                            link: Switch(
+                                gblAppUserLang,
+                                "fr",
+                                "https://www.ic.gc.ca/eic/site/icgc.nsf/fra/h_07033.html",
+                                "https://www.ic.gc.ca/eic/site/icgc.nsf/eng/h_07033.html"
+                            ),
+                            screen: Blank(),
+                            row_number: 3
+                        }
+                    );
+            
+                    Clear(colSearch_Buildings),
+                    Clear(colSearch_Floors),
+                    Clear(colSearch_Neighbourhoods), 
+                    Clear(colSearch_SeatingTypes), 
+                    Clear(colSearch_TimeRanges), 
+                    Reset(drpRegion), 
+                    Reset(drpBuilding), 
+                    Reset(drpFloor), 
+                    Reset(drpNeighbourhood), 
+                    Reset(drpSeatingType),
+                    Reset(drpSeatingType), 
+                    Reset(txtDatePickerInput),
+                    Set(gblDateSelected, Blank()),
+                    Set(gblCalendarVisible, false), 
+                    Reset(drpTimeRange) 
+            );
+        PaddingBottom: |-
+            =Min (10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                10 * Switch(cmpScreenFunctionsPS.ScreenSize, 
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5)
+            )
+        PaddingLeft: |-
+            =Min (25 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                25 * Switch(cmpScreenFunctionsPS.ScreenSize, 
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5)
+            )
+        PaddingRight: |-
+            =Min (10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                10 * Switch(cmpScreenFunctionsPS.ScreenSize, 
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5)
+            )
+        PaddingTop: |-
+            =Min (10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                10 * Switch(cmpScreenFunctionsPS.ScreenSize, 
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5)
+            )
+                
+        PressedBorderColor: =Self.BorderColor
+        PressedColor: =drpLanguage.Color 
+        PressedFill: =drpLanguage.Fill
+        SelectionColor: =LookUp(Colors, Color = "Background", RGB)
+        SelectionFill: =ColorFade(LookUp(Colors, Color = "Primary", RGB), 15%)
+        Size: |-
+            =Min(16 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                16 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75) 
+            )
+        Tooltip: =Self.AccessibleLabel
+        Width: |-
+            =(If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))
+        X: =Parent.Width/2 - Self.Width/2
+        Y: |-
+            =lblLanguagePreference.Y + lblLanguagePreference.Height + 
+            Min(15 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35),
+                 15 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35)
+            )   
+        ZIndex: =8
+
+    lblLanguagePreference As label:
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Grey", RGB)
+        DisabledColor: =Self.Color
+        DisplayMode: =DisplayMode.View
+        Font: =Font.Lato
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        Size: |-
+            =Min(16 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                16 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75) 
+            )
+        Text: =LookUp(colTranslationTable, key = "myprofile.language" && language.Value = gblAppUserLang, text)
+        Width: =Len(Self.Text) * Self.Size
+        X: =drpLanguage.X
+        Y: |-
+            =lblEmail.Y + lblEmail.Height + 
+            Min(25 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35),
+                 25 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35)
+            )   
+        ZIndex: =9
+
+    lblEmail As label:
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Primary", RGB)
+        Font: =Font.Lato
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        Size: |-
+            =Min(16 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                16 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75) 
+            )
+        Text: =Lower(gblAppUserDetails.mail)
+        Width: |-
+            =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Value(lblScreenWidthSizingSS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+        X: =drpLanguage.X
+        Y: |-
+            =lblEmailDetected.Y + lblEmailDetected.Height + 
+            Min(15 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35),
+                 15 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35)
+            )   
+        ZIndex: =10
+
+    lblEmailDetected As label:
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Grey", RGB)
+        Font: =Font.Lato
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        Size: |-
+            =Min(16 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                16 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75) 
+            )
+        Text: =LookUp(colTranslationTable, key = "myprofile.detectedemail" && language.Value = gblAppUserLang, text)
+        Width: =Len(Self.Text) * Self.Size
+        X: =drpLanguage.X
+        Y: |-
+            =lblHelloMsg.Y + lblHelloMsg.Height + 
+            Min(60 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35),
+                60 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 1,
+                    1.35) 
+            )
+        ZIndex: =11
+
+    lblHelloMsg As label:
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Primary", RGB)
+        Font: =Font.'Lato Light'
+        Height: =70
+        PaddingLeft: =0
+        Size: |-
+            =Min(45 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                45 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75) 
+            )
+        Text: =LookUp(colTranslationTable, key = "myprofile.hello" && language.Value = gblAppUserLang, text) & ", " & gblAppUserDetails.givenName
+        Width: =Len(Self.Text) * Self.Size
+        X: =drpLanguage.X
+        Y: |-
+            =/*If(Parent.Size=ScreenSize.Small, 2, 4)
+            + Min(100 *  Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 0.9,
+                    1.35),
+                 100 *  Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 0.9,
+                    1.35)
+            )*/
+            cmpHeaderPS.Y + cmpHeaderPS.Height +
+            Min(50 *  Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 0.9,
+                    1.35),
+                50 *  Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 0.5,  
+                    ScreenSize.Medium, 0.7, 
+                    ScreenSize.Large, 0.9,
+                    1.35)
+            )
+        ZIndex: =12
+
+    lblPreferencesSectionHeadingPS As label:
+        Height: =0
+        Role: =TextRole.Heading3
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "myprofile.preferencessection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =lblLanguagePreference.X
+        Y: =lblEmail.Y + lblEmail.Height
+        ZIndex: =13
+
+    lblSettingsDashboardHeadingPS As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "myprofile.settings" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =lblLanguagePreference.X
+        Y: =cmpHeaderPS.Y + cmpHeaderPS.Height
+        ZIndex: =14
+
+    cmpHeaderPS As cmp_PageHeading:
+        BackText: =
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HasBackBtn: =false
+        HeadingText: =LookUp(colTranslationTable, key = "nav.profile" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropPS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsPS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingPS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =15
+
+    cmpErrorModalPS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: =LookUp(colTranslationTable, key = "errorpage.subtitle" && language.Value = gblAppUserLang, text)
+        Display_ErrorTitle: =LookUp(colTranslationTable, key = "errorpage.title" && language.Value = gblAppUserLang, text)
+        Height: =shpPageBackdropPS.Height
+        ModalHeight: =shpPageBackdropPS.Height
+        ModalWidth: =shpPageBackdropPS.Width
+        ScreenSize_Height: =cmpScreenFunctionsPS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingPS.Text
+        Visible: =locIsErrorModalVisible
+        Width: =shpPageBackdropPS.Width
+        X: =shpPageBackdropPS.X
+        Y: =shpPageBackdropPS.Y
+        ZIndex: =16
+
+    grpScreenSizingPS As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =18
+
+        lblScreenWidthSizingPS As label:
+            Height: =0
+            Size: =21
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropPS.X + shpPageBackdropPS.Width
+            Y: =shpPageBackdropRS.Y + shpPageBackdropRS.Height
+            ZIndex: =3
+
+        cmpScreenFunctionsPS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropPS.X + shpPageBackdropPS.Width
+            Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+            ZIndex: =4
+

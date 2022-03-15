@@ -1,0 +1,933 @@
+"'8ed72993-df18-4f7a-8d35-b56f2bed1b10' As TestSuite":
+    Description: =""
+    DisplayName: |-
+        ="Suite: Booking Details Page"
+
+    "'4c92c17e-7980-488c-8d7c-554981907df2' As TestCase":
+        Description: ="Make a reservation in status 'BOOKED' in the past 30 days, open the reservation, verify the Cancel button is hidden, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Booked Booking in the Past"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for the past"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: DateAdd(Today(), -10, Days), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step3 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step4 As TestStep:
+            Description: ="Select the previous filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Previous)
+
+        Step5 As TestStep:
+            Description: ="If there are any exisiting past reservations remove them locally"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step6 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step10 As TestStep:
+            Description: ="Select the booking we made from the gallery"
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step8 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step7 As TestStep:
+            Description: ="Verify the status of the booking is Booked"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text)))))
+
+        Step9 As TestStep:
+            Description: ="Verify the Cancel button is not visible due to it being a past booking"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!btnCancelBookingBDS.Visible, "Expected: true, Actual: " &!btnCancelBookingBDS.Visible)
+
+        Step2 As TestStep:
+            Description: ="Remove the reservation"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'57c27d58-85ef-49c1-9338-f3a8deaaa432' As TestCase":
+        Description: ="Make a reservation for the future in status 'BOOKED', open the reservation, verify the Cancel button is visible, select the cancel button, do not confirm the cancellation, verify the status is updated still 'BOOKED', clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel - Not to Cancelling The Booking"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Today Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step7 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Search Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step8 As TestStep:
+            Description: ="Select the cancel button"
+            Value: =Select(btnCancelBookingBDS)
+
+        Step9 As TestStep:
+            Description: ="Select the button to not confirm the cancellation of the booking"
+            Value: =Select(btnCancelNoCYBS)
+
+        Step12 As TestStep:
+            Description: ="Verify the booking's status is the same in the DB"
+            Value: |-
+                =Assert(LookUp(Reservations, ID = TestMyBookingsReso.ID, status.Value) = "BOOKED", "Expected: BOOKED, Actual: " & Text(LookUp(Reservations, ID = TestMyBookingsReso.ID, status.Value)))
+
+        Step10 As TestStep:
+            Description: ="Verify the status of the booking is Booked"
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text)))))
+
+        Step11 As TestStep:
+            Description: ="Verify the Cancel button is visible"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(btnCancelBookingBDS.Visible, "Expected: true, Actual: " &btnCancelBookingBDS.Visible)
+
+        Step4 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'3c4d29d4-f3e8-4591-bb29-feafe29e0bf1' As TestCase":
+        Description: ="Make a reservation for myself, open the reservation, verify the booking details, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Verify Basic Booking Details"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Upcoming Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step9 As TestStep:
+            Description: ="Save the Seat Number"
+            Screen: =Booking Details Screen
+            Value: =Set(TestMyBookingsSeat, LookUp(Desks, ID = TestMyBookingsReso.desk_id.Id))
+
+        Step8 As TestStep:
+            Description: ="Verify the Seat Number"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!IsBlank(Find(Switch(gblAppUserLang, "fr", TestMyBookingsSeat.desk_name_fr, TestMyBookingsSeat.desk_name_en), lblSeatNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(Switch(gblAppUserLang, "fr", TestMyBookingsSeat.desk_name_fr, TestMyBookingsSeat.desk_name_en), lblSeatNameBDS.Text)))
+
+        Step10 As TestStep:
+            Description: ="Save the Seating Type"
+            Value: =Set(TestMyBookingsSeatType, LookUp(SeatingTypes, ID = TestMyBookingsSeat.seating_type_id.Id, Switch(gblAppUserLang, "fr", seating_type_name_fr, seating_type_name_en)))
+
+        Step11 As TestStep:
+            Description: ="Verify the Seating Type"
+            Value: |-
+                =Assert(!IsBlank(Find(TestMyBookingsSeatType, lblSeatNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(TestMyBookingsSeatType, lblSeatNameBDS.Text)))
+
+        Step23 As TestStep:
+            Description: ="Verify the Seat Workstation Specifics"
+            Value: |-
+                =Assert(lblWorkstationSpecificsBDS.Text = Concat(TestMyBookingsSeat.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(TestMyBookingsSeat.workstation_specifics).Value <> tag.Value,", ")), "Expected: true, Actual: " & Text(lblWorkstationSpecificsBDS.Text = Concat(TestMyBookingsSeat.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(TestMyBookingsSeat.workstation_specifics).Value <> tag.Value,", "))))
+
+        Step12 As TestStep:
+            Description: ="Save the Seating Arrangement"
+            Value: =Set(TestMyBookingsSeatArr, LookUp(SeatingArrangements, ID = TestMyBookingsSeat.seating_arrangement_id.Id, Switch(gblAppUserLang, "fr", seating_arrangement_name_fr, seating_arrangement_name_en)))
+
+        Step13 As TestStep:
+            Description: ="Verify the Seating Arrangement"
+            Value: |-
+                =Assert(TestMyBookingsSeatArr = btnSeatingArrangementPillBDS.Text, "Expected: true, Actual: " & Text(TestMyBookingsSeatArr = btnSeatingArrangementPillBDS.Text))
+
+        Step14 As TestStep:
+            Description: ="Save the Building"
+            Value: =Set(TestMyBookingsBuilding, LookUp(Buildings, ID = TestMyBookingsSeat.building_id.Id, Switch(gblAppUserLang, "fr", building_name_fr, building_name_en)))
+
+        Step15 As TestStep:
+            Description: ="Verify the Building (via the building_name)"
+            Value: |-
+                =Assert(!IsBlank(Find(TestMyBookingsBuilding, lblBuildingDetailsBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(TestMyBookingsBuilding, lblBuildingDetailsBDS.Text)))
+
+        Step16 As TestStep:
+            Description: ="Save the Neighbourhood"
+            Value: =Set(TestMyBookingsNeighbourhood, LookUp(Neighbourhoods, ID = TestMyBookingsSeat.neighbourhood_id.Id))
+
+        Step17 As TestStep:
+            Description: ="Save the Floor"
+            Value: =Set(TestMyBookingsFloor, LookUp(Floors, ID = TestMyBookingsNeighbourhood.floor_id.Id, Switch(gblAppUserLang, "fr",floor_name_fr, floor_name_en)))
+
+        Step18 As TestStep:
+            Description: ="Verify the Floor"
+            Value: |-
+                =Assert(TestMyBookingsFloor = lblFloorDetailsBDS.Text, "Expected: true, Actual: " & Text(TestMyBookingsFloor = lblFloorDetailsBDS.Text))
+
+        Step19 As TestStep:
+            Description: ="Verify the Neighbourhood"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(Switch(gblAppUserLang, "fr", TestMyBookingsNeighbourhood.neighbourhood_name_fr, TestMyBookingsNeighbourhood.neighbourhood_name_en) = lblNeighbourhoodDetailsBDS.Text, "Expected: true, Actual: " & Text(Switch(gblAppUserLang, "fr", TestMyBookingsNeighbourhood.neighbourhood_name_fr, TestMyBookingsNeighbourhood.neighbourhood_name_en) = lblNeighbourhoodDetailsBDS.Text))
+
+        Step21 As TestStep:
+            Description: ="Verify the Date"
+            Value: |-
+                =Assert(lblDateDetailsBDS.Text = Proper(Switch(gblAppUserLang, "fr", Text(TestMyBookingsReso.start_date, "[$-en-US]dddd d, mmmm, yyyy","fr-FR"), Text(TestMyBookingsReso.start_date, "[$-en-US]dddd, mmmm d, yyyy", "en-CA"))), "Expected: true, Actual: " & Text(lblDateDetailsBDS.Text = Proper(Switch(gblAppUserLang, "fr", Text(TestMyBookingsReso.start_date, "[$-en-US]dddd d, mmmm, yyyy","fr-FR"), Text(TestMyBookingsReso.start_date, "[$-en-US]dddd, mmmm d, yyyy", "en-CA")))))
+
+        Step22 As TestStep:
+            Description: ="Verify the Timeslot"
+            Value: |-
+                =Assert(lblTimeRangeDetailsBDS.Text = LookUp(Timeslots, ID = TestMyBookingsReso.timeslot_id.Id, Switch(gblAppUserLang, "fr", time_range_fr, time_range_en)), "Expected: true, Actual: " & Text(lblTimeRangeDetailsBDS.Text = LookUp(Timeslots, ID = TestMyBookingsReso.timeslot_id.Id, Switch(gblAppUserLang, "fr", time_range_fr, time_range_en))))
+
+        Step20 As TestStep:
+            Description: ="Verify Booking Associations is hidden (since this is a personal booking)"
+            Value: |-
+                =Assert(!btnAccessibilityBookingSearchCardBDS.Visible, "Expected: true, Actual: " & !btnAccessibilityBookingSearchCardBDS.Visible)
+
+        Step7 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'c84b637d-4088-4946-87e7-b4ae659936b6' As TestCase":
+        Description: ="Make a reservation in status 'CANCELLED' in the past 30 days, open the reservation, verify the Cancel button is hidden, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Cancelled Booking in the Past"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for previous"
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "CANCELLED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: DateAdd(Today(), -10, Days), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Value: =Navigate('My Bookings Screen')
+
+        Step8 As TestStep:
+            Description: ="Select the cancelled filter"
+            Value: =Select(btnAccessibilityFilter_Cancelled)
+
+        Step9 As TestStep:
+            Description: ="If there are any exisiting past reservations remove them locally"
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step7 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step4 As TestStep:
+            Description: ="Select the booking we made from the gallery"
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify that we are not redirected to Booking Details page"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(App.ActiveScreen <> 'Booking Details Screen', "Expected: true, Actual: " & Text(App.ActiveScreen <> 'Booking Details Screen'))
+
+        Step3 As TestStep:
+            Description: ="Verfiy that we are still on the My Bookings page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'My Bookings Screen', "Expected: true, Actual: " & Text(App.ActiveScreen = 'My Bookings Screen'))
+
+        Step5 As TestStep:
+            Description: ="Remove the reservation"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'05d26d35-afcb-4ffc-8569-6137e16e9e69' As TestCase":
+        Description: ="Make a reservation in status 'CANCELLED' for today, open the reservation, verify the Cancel button is hidden, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Cancelled Booking for Today"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "CANCELLED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the cancelled filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Cancelled)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting today's reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the reservation we created from the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(App.ActiveScreen <> 'Booking Details Screen', "Expected: true, Actual: " & Text(App.ActiveScreen <> 'Booking Details Screen'))
+
+        Step8 As TestStep:
+            Description: ="Verfiy that we are still on the My Bookings page"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(App.ActiveScreen = 'My Bookings Screen', "Expected: true, Actual: " & Text(App.ActiveScreen = 'My Bookings Screen'))
+
+        Step9 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'1fd1757f-45d1-482e-b30a-aae3d1a9f312' As TestCase":
+        Description: ="Make a reservation in status 'BOOKED' for today, open the reservation, verify the Cancel button is visible, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Booked Booking for Today"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the upcoming filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting today's reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the reservation we created from the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step8 As TestStep:
+            Description: ="Verify the status of the booking is Booked"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text)))))
+
+        Step9 As TestStep:
+            Description: ="Verify the Cancel button is visible"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(btnCancelBookingBDS.Visible, "Expected: true, Actual: " &btnCancelBookingBDS.Visible)
+
+        Step10 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'d238f918-e01f-48c5-a2cb-5ea4eed3530d' As TestCase":
+        Description: ="Make a reservation in status 'CANCELLED' for a future date, open the reservation, verify the Cancel button is hidden, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Cancelled Booking for the Future"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for less than 8 days in the future"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "CANCELLED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the cancelled filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Cancelled)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the reservation we created from the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(App.ActiveScreen <> 'Booking Details Screen', "Expected: true, Actual: " & Text(App.ActiveScreen <> 'Booking Details Screen'))
+
+        Step8 As TestStep:
+            Description: ="Verfiy that we are still on the My Bookings page"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(App.ActiveScreen = 'My Bookings Screen', "Expected: true, Actual: " & Text(App.ActiveScreen = 'My Bookings Screen'))
+
+        Step9 As TestStep:
+            Description: ="Remove the reservation"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'de03d7c4-5a1e-46b9-ab50-39f7f9d79809' As TestCase":
+        Description: ="Make a reservation in status 'Booked' for a future date, open the reservation, verify the Cancel button is visible, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Cancel a Booked Booking for the Future"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for less than 8 days in the future"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the upcoming filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the reservation we created from the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step8 As TestStep:
+            Description: ="Verify the status of the booking is Booked"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text)))))
+
+        Step9 As TestStep:
+            Description: ="Verify the Cancel button is visible"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(btnCancelBookingBDS.Visible, "Expected: true, Actual: " &btnCancelBookingBDS.Visible)
+
+        Step10 As TestStep:
+            Description: ="Remove the reservation"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'793bfa61-6669-4756-b877-9cb8ba9153fe' As TestCase":
+        Description: ="Make a reservation for myself else made by someone else, open the reservation, verify the Booking Associations card is visible and the Booking Associations details are accurate, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Associations for a Booking Made for Me"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: Lower(TestAccount.Mail), start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Upcoming Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step7 As TestStep:
+            Description: ="Verify Booking Associations is visible (since this is an outbound booking)"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(btnAccessibilityBookingSearchCardBDS.Visible, "Expected: true, Actual: " & btnAccessibilityBookingSearchCardBDS.Visible)
+
+        Step9 As TestStep:
+            Description: ="Verify Booked for person is me"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!IsBlank(Find(gblAppUserDetails.givenName & " " & gblAppUserDetails.surname, lblBookingForNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(gblAppUserDetails.givenName & " " & gblAppUserDetails.surname, lblBookingForNameBDS.Text)))
+
+        Step10 As TestStep:
+            Description: ="Verify Booked by person is someone else"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!IsBlank(Find(TestMyBookingsReso.proxy_user_email, lblBookedByNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(TestMyBookingsReso.proxy_user_email, lblBookedByNameBDS.Text)))
+
+        Step8 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'f873cee9-2864-4ebe-82f9-13465b21c2cc' As TestCase":
+        Description: ="Make a reservation for myself, open the reservation, verify the Booking Associations card is hidden, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Associations for a Personal Booking"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Upcoming Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step8 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step6 As TestStep:
+            Description: ="Verify Booking Associations is hidden (since this is a personal booking)"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!btnAccessibilityBookingSearchCardBDS.Visible, "Expected: true, Actual: " & !btnAccessibilityBookingSearchCardBDS.Visible)
+
+        Step7 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'7bf5d618-c8de-4102-b5f6-5d32fded5a03' As TestCase":
+        Description: ="Make a reservation for someone else made by myself, open the reservation, verify the Booking Associations card is visible and the Booking Associations details are accurate, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Associations for an Outbound Booking"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(TestAccount.Mail), proxy_user_email: Lower(gblAppUserDetails.mail), start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Upcoming Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step7 As TestStep:
+            Description: ="Verify Booking Associations is visible (since this is an outbound booking)"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(btnAccessibilityBookingSearchCardBDS.Visible, "Expected: true, Actual: " & btnAccessibilityBookingSearchCardBDS.Visible)
+
+        Step9 As TestStep:
+            Description: ="Verify Booked for person is someone else"
+            Value: |-
+                =Assert(!IsBlank(Find(TestMyBookingsReso.user_email, lblBookingForNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(TestMyBookingsReso.user_email, lblBookingForNameBDS.Text)))
+
+        Step10 As TestStep:
+            Description: ="Verify Booked by person is me"
+            Value: |-
+                =Assert(!IsBlank(Find(gblAppUserDetails.givenName & " " & gblAppUserDetails.surname, lblBookedByNameBDS.Text)), "Expected: true, Actual: " & !IsBlank(Find(gblAppUserDetails.givenName & " " & gblAppUserDetails.surname, lblBookedByNameBDS.Text)))
+
+        Step8 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'5b009d30-c853-4f94-a0db-9c9ac0c02970' As TestCase":
+        Description: ="Make a reservation, open the reservation, verify the floorplan link works, clean-up the reservation"
+        DisplayName: |-
+            ="Case: [NOT WORKING] Booking Details - Link to Floorplan"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for past"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: DateAdd(Today(), -10, Days), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the past filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Previous)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting past reservations remove them locally"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the booking we made from the gallery"
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step9 As TestStep:
+            Description: ="Select the floorplan button"
+            Screen: =Booking Details Screen
+            Value: =Select(btnAccessibilityFloorPlanBDS)
+
+        Step10 As TestStep:
+            Description: ="Remove the reservation for past"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+        Step8 As TestStep:
+            Description: ="[NOT WORKING] Verify the Floorplan page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Floorplan Screen')
+
+    "'7828279d-d76b-4c8b-803f-37d641dfcb73' As TestCase":
+        Description: ="Make a reservation for myself, open the reservation, verify the status is visible, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Upcoming Booking - Verify Status is Visible"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Upcoming Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step7 As TestStep:
+            Description: ="Verify the status is visible"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(lblBookingStatusBDS.Visible, "Expected: true, Actual: " & lblBookingStatusBDS.Visible)
+
+        Step10 As TestStep:
+            Description: ="Verify the status image is visible"
+            Value: |-
+                =Assert(imgBookingStatusBDS.Visible, "Expected: true, Actual: " & imgBookingStatusBDS.Visible)
+
+        Step9 As TestStep:
+            Description: ="Verify the status is Booked"
+            Value: |-
+                =Assert(lblBookingStatusBDS.Text = LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang,text), "Expected: true, Actual: " & Text(lblBookingStatusBDS.Text = LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang,text)))
+
+        Step8 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'b971c292-b43c-4b0c-93c0-9032005ace34' As TestCase":
+        Description: ="Make a reservation for myself, open the reservation, verify the status is not visible, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Booking Details - Previous Booking - Verify Status is not Visible"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for the past"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: DateAdd(Today(), -30, Days), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to the My Bookings page"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the Previous Filter button"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Previous)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting upcoming reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Select the first reservation in the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step6 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step7 As TestStep:
+            Description: ="Verify the status is not visible"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(!lblBookingStatusBDS.Visible, "Expected: true, Actual: " & !lblBookingStatusBDS.Visible)
+
+        Step9 As TestStep:
+            Description: ="Verify the status image is visible"
+            Value: |-
+                =Assert(!imgBookingStatusBDS.Visible, "Expected: true, Actual: " & !imgBookingStatusBDS.Visible)
+
+        Step8 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+
+    "'c40ca498-becb-4d4b-b574-52bb8853186c' As TestCase":
+        Description: ="Make a reservation in status 'BOOKED' for today, open the reservation, verify the Cancel button is visible, select the cancel button, verify the error message is displayed, clean-up the reservation"
+        DisplayName: |-
+            ="Case: Error - Booking has been cancelled in meantime"
+
+        Step1 As TestStep:
+            Description: ="Add a reservation for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestMyBookingsReso, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(Desks, status.Value = "ACTIVE").ID, Value: LookUp(Desks, status.Value = "ACTIVE").ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: Today(), timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: LookUp(colTimeslots, time_range_en = "ALL DAY").ID, Value: LookUp(colTimeslots, time_range_en = "ALL DAY").ID  } }))
+
+        Step2 As TestStep:
+            Description: ="Navigate to My Bookings page to fetch new reservations"
+            Screen: =Test Screen-NotVisible
+            Value: =Navigate('My Bookings Screen')
+
+        Step3 As TestStep:
+            Description: ="Select the upcoming filter"
+            Screen: =My Bookings Screen
+            Value: =Select(btnAccessibilityFilter_Upcoming)
+
+        Step4 As TestStep:
+            Description: ="If there are any exisiting today's reservation remove them"
+            Screen: =My Bookings Screen
+            Value: =ClearCollect(colMyBookings_Results, Filter(colMyBookings_Results, ID = TestMyBookingsReso.ID))
+
+        Step5 As TestStep:
+            Description: ="Verify that the reservation exists locally"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Assert(TestMyBookingsReso.ID in colMyBookings_Results.ID, "Expected: true, Actual: " & (TestMyBookingsReso.ID in colMyBookings_Results.ID))
+
+        Step6 As TestStep:
+            Description: ="Select the reservation we created from the gallery"
+            Screen: =My Bookings Screen
+            Value: =Select(galMyBookingResults, 1, crdAccessibilityBookingMBS)
+
+        Step7 As TestStep:
+            Description: ="Verify the Booking Details page is visible"
+            Screen: =Booking Details Screen
+            Value: =Assert(App.ActiveScreen = 'Booking Details Screen')
+
+        Step8 As TestStep:
+            Description: ="Verify the status of the booking is Booked"
+            Screen: =Booking Details Screen
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.booked" && language.Value = gblAppUserLang, text)))))
+
+        Step9 As TestStep:
+            Description: ="Select the Cancel button"
+            Screen: =Booking Details Screen
+            Value: =Select(btnCancelBookingBDS)
+
+        Step11 As TestStep:
+            Description: ="Change the status of reservation in the DB to Cancelled"
+            Value: |-
+                =Patch(Reservations, LookUp(Reservations, ID = TestMyBookingsReso.ID),{ status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "CANCELLED" } } )
+
+        Step12 As TestStep:
+            Description: ="Select the ""Yes, cancel this booking"" button"
+            Value: =Select(btnCancelYesCYBS)
+
+        Step13 As TestStep:
+            Description: ="Verify the error cancellation message is displayed"
+            Value: |-
+                =Assert(lblCancelError.Visible = true, "Expected: true, Actual: " & lblCancelError.Visible)
+
+        Step14 As TestStep:
+            Description: ="Verify the status of the booking on the page is now ""Cancelled"""
+            Value: |-
+                =Assert(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.cancelled" && language.Value = gblAppUserLang, text))), "Expected: true, Actual: " & Text(Lower(Trim(lblBookingStatusBDS.Text)) = Lower(Trim(LookUp(colTranslationTable, key = "mybookings.card.status.cancelled" && language.Value = gblAppUserLang, text)))))
+
+        Step15 As TestStep:
+            Description: ="Verify the user is still on the Booking Details screen"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Booking Details Screen', "Expected: true, Actual: " & App.ActiveScreen.Name)
+
+        Step16 As TestStep:
+            Description: ="Verify the Cancel button is hidden"
+            Value: |-
+                =Assert(!btnCancelBookingBDS.Visible = true, "Expected: true, Actual: " & !btnCancelBookingBDS.Visible)
+
+        Step17 As TestStep:
+            Description: ="Verify the Cancel Verification Modal is hidden"
+            Value: |-
+                =Assert(!btnCancelYesCYBS.Visible = true, "Expected: true, Actual: " & !btnCancelYesCYBS.Visible)
+
+        Step10 As TestStep:
+            Description: ="Remove the reservation for today"
+            Screen: =Booking Details Screen
+            Value: =RemoveIf(Reservations, ID = TestMyBookingsReso.ID)
+

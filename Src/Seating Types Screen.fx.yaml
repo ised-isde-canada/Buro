@@ -1,0 +1,608 @@
+"'Seating Types Screen' As screen.'phoneLayout_FluidGridWithHeaderPageLayout_ver3.0'":
+    OnHidden: |-
+        =Reset(galSeatingTypes); UpdateContext({locResetScrollPosition: false});
+    OnVisible: |-
+        =Concurrent(
+            //Finds the longest seating type description and is used to set the size of the gallery template height
+            UpdateContext({locLongestSeatingTypeDesc: 
+                First(
+                    Sort(
+                        ForAll(
+                            colSeatingTypeTable As Result,
+                            {
+                                ID: Result.ID,
+                                Len: Switch(
+                                    gblAppUserLang,
+                                    "fr",
+                                    Len(Result.seating_type_description_fr),
+                                    Len(Result.seating_type_description_en)
+                                )
+                            }
+                        ),
+                    Len,
+                    Descending
+                    )
+                )
+            }),
+        
+            //Finds the longest seating type name and is used to set the size of the gallery template height
+            UpdateContext({locLongestSeatingTypeName: 
+                First(
+                    Sort(
+                        ForAll(
+                            colSeatingTypeTable As Result,
+                            {
+                                ID: Result.ID,
+                                Len: Switch(
+                                    gblAppUserLang,
+                                    "fr",
+                                    Len(Result.seating_type_name_fr),
+                                    Len(Result.seating_type_name_en)
+                                )
+                            }
+                        ),
+                    Len,
+                    Descending
+                    )
+                ).ID
+            }),
+            UpdateContext({locResetScrollPosition: true});
+        )
+
+    shpScreenBackdropSTS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropSTS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: |
+            =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    canScrollableCanvasSTS As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =App.Height - cmpHeaderSTS.Height
+        Visible: =locResetScrollPosition
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =cmpHeaderSTS.Y + cmpHeaderSTS.Height
+        ZIndex: =7
+
+        canCanvasCardSTS As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            Height: |-
+                =galSeatingTypes.Y + galSeatingTypes.Height +
+                70 * Switch(
+                    Value(lblScreenWidthSizingSTS.Text),
+                    ScreenSize.Small, 1,
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,
+                    2
+                )
+            Visible: =true
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+            crdConfirmSeatingSTS As button:
+                BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                BorderThickness: =0
+                DisabledBorderColor: =Self.BorderColor
+                DisabledColor: =Self.Color
+                DisabledFill: =Self.Fill
+                DisplayMode: =DisplayMode.Disabled
+                Fill: =RGBA(255, 255, 255, 1)
+                FocusedBorderColor: =
+                FocusedBorderThickness: =0
+                Height: =galSeatingTypes.Height
+                HoverBorderColor: =
+                HoverColor: =
+                HoverFill: =
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(10 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        10 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: =0
+                TabIndex: =-1
+                Text: =""
+                Width: =galSeatingTypes.Width
+                X: =galSeatingTypes.X
+                Y: =galSeatingTypes.Y
+                ZIndex: =1
+
+            galSeatingTypes As gallery.galleryVertical:
+                AccessibleLabel: =LookUp(colTranslationTable, key = "seatingtypes.list" && language.Value = gblAppUserLang, text)
+                ContentLanguage: =gblAppUserLang
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingSTS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        2.5 * Switch(cmpScreenFunctionsSTS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                    )
+                Height: =Self.TemplateHeight * CountRows(Self.AllItems)
+                ItemAccessibleLabel: =
+                Items: =SortByColumns(colSeatingTypeTable, "ID", Ascending)
+                Layout: =Layout.Vertical
+                Selectable: =false
+                TemplatePadding: =0
+                TemplateSize: |-
+                    =//Flexibile Height Template - Based on the max of the height of the largest seating type name and description or the height of the image
+                    Max(
+                        //lblSeatingTypeNameSizingSTS.Height + lblSeatingTypeDescriptionSizingSTS.Height +
+                        ( ( ( locLongestSeatingTypeDesc.Len * Len(lblSeatingTypeDescriptionSTS.Font) ) / Self.Width ) * Len(lblSeatingTypeDescriptionSTS.Font) ) + lblSeatingTypeDescriptionSTS.PaddingTop + lblSeatingTypeDescriptionSTS.PaddingBottom +
+                        Min(20 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        ) * 2,
+                        Min(230 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.35,
+                            ScreenSize.Large, 1.65,  
+                            1.85),
+                        230 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.35,
+                            ScreenSize.Large, 1.65,  
+                            1.85)
+                        )
+                    )
+                Width: |-
+                    =shpPageBackdropSTS.Width 
+                    - (10 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,  
+                            ScreenSize.Large, 1.75,
+                            5))
+                    - (25 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,  
+                            ScreenSize.Large, 1.75,
+                            5))
+                X: =canCanvasCardSTS.X + canCanvasCardSTS.Width/2 - Self.Width/2
+                Y: |-
+                    =lblSeatingTypesDisclaimerSTS.Y + lblSeatingTypesDisclaimerSTS.Height +
+                    Min(15 *  Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        15 *  Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)
+                    )
+                ZIndex: =2
+
+                imgSeatingTypeImageSTS As image:
+                    Height: |-
+                        =Min(230 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.35,
+                                ScreenSize.Large, 1.65,  
+                                1.85),
+                            230 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.35,
+                                ScreenSize.Large, 1.65,  
+                                1.85)
+                        ) - 
+                        Min(30 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            30 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    Image: =ThisItem.seating_type_image
+                    OnSelect: =Select(Parent)
+                    Width: =Self.Height
+                    X: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            15 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    Y: =Parent.TemplateHeight/2 - Self.Height/2
+                    ZIndex: =1
+
+                shpDividerBottomSTS As rectangle:
+                    Fill: =ColorFade(LookUp(Colors, Color = "Grey", RGB), 50%)
+                    FocusedBorderThickness: =0
+                    Height: =1
+                    OnSelect: =Select(Parent)
+                    Visible: |-
+                        =//To have the divider on the bottom of the last item we check if this is the last item in the list
+                        If(Last(SortByColumns(colSeatingTypeTable, "ID", Ascending)).ID = ThisItem.ID, 
+                            false,
+                            true
+                        )
+                    Width: =Parent.TemplateWidth
+                    Y: =Parent.TemplateHeight - 1
+                    ZIndex: =2
+
+                lblSeatingTypeDescriptionSTS As label:
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    Height: =(imgSeatingTypeImageSTS.Y + imgSeatingTypeImageSTS.Height) - Self.Y
+                    OnSelect: =Select(Parent)
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: |
+                        =Min(16 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9),
+                            16 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9)
+                        )
+                    Text: =Switch(gblAppUserLang, "fr", ThisItem.seating_type_description_fr, ThisItem.seating_type_description_en)
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: |-
+                        =galSeatingTypes.Width - Self.X - 
+                        Min(20 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    X: |-
+                        =imgSeatingTypeImageSTS.X + imgSeatingTypeImageSTS.Height + 
+                        Min(20 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    Y: =lblSeatingTypeTitleSTS.Y + lblSeatingTypeTitleSTS.Height + 1
+                    ZIndex: =3
+
+                lblSeatingTypeTitleSTS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =70
+                    OnSelect: =Select(Parent)
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    Role: =TextRole.Heading3
+                    Size: |
+                        =Min(18 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9),
+                            18 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9)
+                        )
+                    Text: =Switch(gblAppUserLang, "fr", ThisItem.seating_type_name_fr, ThisItem.seating_type_name_en)
+                    Width: |-
+                        =galSeatingTypes.Width - Self.X - 
+                        Min(18 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            18 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    X: |-
+                        =imgSeatingTypeImageSTS.X + imgSeatingTypeImageSTS.Width + 
+                        Min(20 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    Y: |-
+                        =Min(20 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75)
+                        )
+                    ZIndex: =5
+
+            lblSeatingTypesListHeadingSTS As label:
+                Height: =0
+                Role: =TextRole.Heading2
+                Size: =0
+                Text: =LookUp(colTranslationTable, key = "seatingtypes.list" && language.Value = gblAppUserLang, text)
+                Width: =0
+                X: =galSeatingTypes.X
+                Y: =galSeatingTypes.Y - 1
+                ZIndex: =3
+
+            lblSeatingTypesDisclaimerSTS As label:
+                Align: =Align.Right
+                AutoHeight: =true
+                BorderColor: =RGBA(0,0,0,0)
+                Color: =LookUp(Colors, Color = "Primary", RGB)
+                FocusedBorderColor: =
+                Font: =Font.Lato
+                Height: =
+                PaddingBottom: =0
+                PaddingLeft: =imgSeatingTypeImageSTS.X
+                PaddingRight: =0
+                PaddingTop: =0
+                Size: |
+                    =Min(14 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9),
+                        14 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9)
+                    )
+                Text: =LookUp(colTranslationTable, key = "seatingtypes.disclaimer" && language.Value = gblAppUserLang, text)
+                Width: =galSeatingTypes.Width
+                X: =lblSeatingTypesIncludeSTS.X
+                Y: |
+                    =lblSeatingTypesIncludeDescSTS.Y + lblSeatingTypesIncludeDescSTS.Height +
+                    Min(15 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        15 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.75)
+                    )
+                ZIndex: =4
+
+            lblSeatingTypesIncludeDescSTS As label:
+                AutoHeight: =true
+                BorderColor: =RGBA(0,0,0,0)
+                Color: =LookUp(Colors, Color = "Grey", RGB)
+                FocusedBorderColor: =
+                Font: =Font.Lato
+                Height: =
+                PaddingBottom: =0
+                PaddingLeft: =imgSeatingTypeImageSTS.X
+                PaddingRight: =0
+                PaddingTop: =0
+                Size: |
+                    =Min(16 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9),
+                        16 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9)
+                    )
+                Text: =LookUp(colTranslationTable, key = "seatingtypes.allinclude.description" && language.Value = gblAppUserLang, text)
+                Width: =galSeatingTypes.Width
+                X: =lblSeatingTypesIncludeSTS.X
+                Y: |
+                    =lblSeatingTypesIncludeSTS.Y + lblSeatingTypesIncludeSTS.Height +
+                    Min(5 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        5 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.75)
+                    )
+                ZIndex: =5
+
+            lblSeatingTypesIncludeSTS As label:
+                AutoHeight: =true
+                BorderColor: =RGBA(0,0,0,0)
+                Color: =LookUp(Colors, Color = "Primary", RGB)
+                FocusedBorderColor: =
+                Font: =Font.'Lato Black'
+                FontWeight: =FontWeight.Semibold
+                Height: =
+                PaddingLeft: =imgSeatingTypeImageSTS.X
+                PaddingRight: =0
+                Size: |
+                    =Min(18 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9),
+                        18 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.9)
+                    )
+                Text: =LookUp(colTranslationTable, key = "seatingtypes.allinclude" && language.Value = gblAppUserLang, text)
+                Width: =galSeatingTypes.Width
+                X: =canCanvasCardSTS.X + canCanvasCardSTS.Width/2 - Self.Width/2
+                Y: |-
+                    =Min(30 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                        30 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            1.75)
+                    )
+                ZIndex: =6
+
+            lblSeatTypesExplainedSectionHeadingSTS As label:
+                AutoHeight: =true
+                Height: =0
+                Role: =TextRole.Heading2
+                Size: =0
+                Text: =LookUp(colTranslationTable, key = "seatingtypes.overviewsection" && language.Value = gblAppUserLang, text)
+                Width: =0
+                X: =canCanvasCardSTS.X
+                ZIndex: =7
+
+    grpScreenSizingSTS As group:
+        Height: =5
+        Width: =5
+        X: =-20
+        Y: =496
+        ZIndex: =7
+
+        cmpScreenFunctionsSTS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropPS.X + shpPageBackdropPS.Width
+            Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+            ZIndex: =3
+
+        lblScreenWidthSizingSTS As label:
+            Height: =0
+            Size: =21
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =20
+            Y: =shpPageBackdropRS.Y + shpPageBackdropRS.Height
+            ZIndex: =4
+
+    cmpHeaderSTS As cmp_PageHeading:
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HeadingText: =LookUp(colTranslationTable, key = "myprofile.links.seatingtypeguide" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingSTS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsSTS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropSTS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsSTS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingSTS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(Parent.Size=ScreenSize.Small,
+                2,
+                4
+            )
+        ZIndex: =13
+

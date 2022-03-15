@@ -1,0 +1,9 @@
+[
+  {
+    "IsComponentScoped": false,
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colSearch_Buildings",
+    "Type": "CollectionDataSourceInfo"
+  }
+]

@@ -1,0 +1,20 @@
+<svg width="7.926" height="8.731" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.a{fill:none;stroke:#302450;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:0.679px;}</style>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_1">
+   <path class="a" d="m0.377,3.32l7.176,0" id="svg_2"/>
+   <path class="a" d="m5.752,4.892l0,0" id="svg_3"/>
+   <path class="a" d="m3.966,4.892l0,0" id="svg_4"/>
+   <path class="a" d="m2.176,4.892l0,0" id="svg_5"/>
+   <path class="a" d="m5.752,6.456l0,0" id="svg_6"/>
+   <path class="a" d="m3.966,6.456l0,0" id="svg_7"/>
+   <path class="a" d="m2.176,6.456l0,0" id="svg_8"/>
+   <path class="a" d="m5.59,0.34l0,1.325" id="svg_9"/>
+   <path class="a" d="m2.338,0.34l0,1.325" id="svg_10"/>
+   <path class="a" d="m5.669,0.976l-3.408,0a1.732,1.732 0 0 0 -1.921,1.869l0,3.643a1.749,1.749 0 0 0 1.921,1.9l3.405,0a1.733,1.733 0 0 0 1.92,-1.869l0,-3.674a1.726,1.726 0 0 0 -1.917,-1.869z" id="svg_11"/>
+  </g>
+ </g>
+</svg>

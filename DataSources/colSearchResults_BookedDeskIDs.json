@@ -1,0 +1,9 @@
+[
+  {
+    "IsComponentScoped": false,
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colSearchResults_BookedDeskIDs",
+    "Type": "CollectionDataSourceInfo"
+  }
+]

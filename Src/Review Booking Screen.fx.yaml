@@ -1,0 +1,2174 @@
+"'Review Booking Screen' As screen.'phoneLayout_FluidGridWithHeaderPageLayout_ver3.0'":
+    OnHidden: |-
+        =UpdateContext({locIsBookingForAnotherUser: false, locSelectedUser: Blank(), locResetScrollPosition: false});
+    OnVisible: |-
+        =Concurrent(
+            //Call Loading animation and set default var values
+            UpdateContext(
+                {
+                    locIsLoadingVisible: false,
+                    locIsPageLoadingVisible: true,
+                    locIsDoneLoadingVisible: false,
+                    locStartLoadingTimer: false,
+                    locStartDoneTimer: false,
+                    locLoadingDuration: gblBaseLoadTime,
+                    locIsErrorModalVisible: false,
+                    locResetScrollPosition: true,
+                    locBlockNavigateToConfirmPage: false,
+                    locBookNowErrorMsg: ""
+                }
+            ),
+            Clear(colConfirmBooking_Result)
+        );
+        
+        //Trigger Loading
+        UpdateContext({locStartLoadingTimer:true});
+        
+        IfError(
+            //Get Building Information
+            Concurrent(
+                UpdateContext({locSelectedBuilding: LookUp(Buildings, ID = locSelectedResult.building_id.Id)}),
+                UpdateContext({locBookNowError: false}),
+                If(IsEmpty(locSelectedUser) || IsBlank(locSelectedUser), UpdateContext({locIsBookingForAnotherUser: false}), UpdateContext({locIsBookingForAnotherUser: true}))
+            ),
+        
+            //If there's an error show the component (error modal)
+            UpdateContext({locIsErrorModalVisible: true});
+            
+            //If there's an error also try to patch the error details to the Sharepoint Error list
+            Patch(ExternalErrors, Defaults(ExternalErrors), 
+            {   user_email: Lower(gblAppUserDetails.mail), 
+                error_code: First(Errors(Buildings)).Error,
+                error_message: First(Errors(Buildings)).Message, 
+                error_log: "LookUp(Buildings, ID = locSelectedResult.building_id.Id)",
+                error_origin: App.ActiveScreen 
+            }),
+            {}
+        );
+        
+        With(First(colReview_PlaceholderReservation) As placeholder_reso,
+            If(IsEmpty(colReview_PlaceholderReservation) || IsBlank(LookUp(Reservations, ID = placeholder_reso.ID, ID)),
+                IfError(
+                    ClearCollect(colReview_PlaceholderReservation, 
+                        Patch(Reservations, Defaults(Reservations), 
+                            {
+                                status: {
+                                    '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                    Value: "ON HOLD"
+                                },
+                                desk_id: {
+                                    '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                    Id: locSelectedResult.ID,
+                                    Value: locSelectedResult.ID
+                                },
+                                user_email: Blank(),
+                                proxy_user_email: Blank(),
+                                start_date: locSelectedDate,
+                                timeslot_id: {
+                                    '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                    Id: locSelectedTimeRange.ID,
+                                    Value: locSelectedTimeRange.ID
+                                }
+                            }
+                        )
+                    ),
+        
+                    //If there's an error show the component (error modal)
+                    UpdateContext({locIsErrorModalVisible: true});
+                    
+                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                    {   user_email: Lower(gblAppUserDetails.mail), 
+                        error_code: First(Errors(Buildings)).Error,
+                        error_message: First(Errors(Buildings)).Message, 
+                        error_log: "Patch(Reservations, Defaults(Reservations) ...)",
+                        error_origin: App.ActiveScreen 
+                    }),
+                    Table()
+                )
+            )
+        
+        
+        );
+        
+        //Stop the timer
+        UpdateContext({locLoadingDuration: 0});
+
+    shpScreenBackdropRBS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropRBS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    timLoadingRBS As timer:
+        AutoPause: =false
+        Duration: =locLoadingDuration
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsLoadingVisible: false, locStartLoadingTimer:false});
+            UpdateContext({ locStartDoneTimer:true});
+        OnTimerStart: |-
+            =UpdateContext({locIsLoadingVisible: true});
+        Reset: =true
+        Start: =locStartLoadingTimer
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+        Y: =shpPageBackdropRBS.Y + shpPageBackdropRBS.Height
+        ZIndex: =5
+
+    timDoneLoadingRBS As timer:
+        Duration: =2000
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsDoneLoadingVisible:false, locStartDoneTimer:false});
+        OnTimerStart: |-
+            =UpdateContext({locIsDoneLoadingVisible: true, locIsPageLoadingVisible: false});
+        Reset: =true
+        Start: =locStartDoneTimer
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+        Y: =shpPageBackdropRBS.Y + shpPageBackdropRBS.Height
+        ZIndex: =6
+
+    canScrollableCanvasRBS As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =shpPageBackdropRBS.Height - cmpHeaderRBS.Height
+        Visible: =!locIsPageLoadingVisible
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =cmpHeaderRBS.Y + cmpHeaderRBS.Height
+        ZIndex: =7
+
+        canCanvasCardRBS As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =RGBA(0, 0, 0, 0)
+            Height: =shpAddedSpaceToScrollWindow.Y + shpAddedSpaceToScrollWindow.Height
+            Visible: =locResetScrollPosition
+            Width: =Parent.Width
+            WidthFit: =false
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+            shpAddedSpaceToScrollWindow As rectangle:
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =crdConfirmSeatingRBS.Y 
+                Y: =If(locBookNowErrorMsg <> "", btnBookNow.Y + btnBookNow.Height, shpErrorBackgroundRBS.Y + shpErrorBackgroundRBS.Height)
+                ZIndex: =1
+
+            btnBookNow As button:
+                AutoDisableOnSelect: =false
+                BorderColor: =RGBA(0,0,0,0)
+                BorderThickness: |-
+                    =Min(2 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                        2 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                    )
+                DisabledColor: =LookUp(Colors, Color = "Background", RGB)
+                DisabledFill: =LookUp(Colors, Color = "Grey", RGB)
+                Fill: =If(locBookNowErrorMsg <> "", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |-
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                        2.5 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                    )
+                Font: =Font.'Lato Black'
+                Height: |-
+                    =Min(100 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25),
+                        100 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25) 
+                    )
+                HoverBorderColor: =
+                HoverColor: =btnBookNow.Color
+                HoverFill: =If(locBookNowErrorMsg <> "", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Muted Primary", RGB))
+                OnSelect: |
+                    =UpdateContext({locPassedUserCheck: false});
+                    
+                    If(locBookNowErrorMsg = "",
+                    
+                        //--Refresh Reservations to prevent a race condition
+                        IfError(
+                            Refresh(Reservations),
+                    
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                                
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Reservations)).Error,
+                                error_message: First(Errors(Reservations)).Message, 
+                                error_log: "Refresh(Reservations);",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            false
+                        );
+                    
+                    
+                        //--Check if the user is allowed to book
+                        //Determine if we're making a personal or outbound booking
+                        If(
+                            locIsBookingForAnotherUser,
+                            
+                            //  CASE: OUTBOUND BOOKING
+                            IfError(
+                    
+                                //Check if the person being booked for has outbound bookings or a personal booking
+                                With(First(Filter(Reservations, user_email = Lower(locSelectedUser.Mail), start_date = locSelectedDate, status.Value = "BOOKED")) As reservation_rec,
+                    
+                                    If(!IsBlank(reservation_rec),
+                                            If(!IsBlank(reservation_rec.proxy_user_email),
+                                                //Show Booking Error - The person we are trying to book for already has an outbound booking made for them on that day
+                                                UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.outboundbknslimit" && language.Value = gblAppUserLang, text)});
+                                                Notify(locBookNowErrorMsg, NotificationType.Error, 10000),
+                                                
+                                                //Show Booking Error - Person already has a booking for themselves on that same day
+                                                UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.outboundpersonalbknsoverlap" && language.Value = gblAppUserLang,text)}));
+                                                Notify(locBookNowErrorMsg, NotificationType.Error, 10000),
+                                        //BOOKING IS ALLOWED.
+                                        UpdateContext({locPassedUserCheck: true})
+                                    )
+                    
+                                ),
+                    
+                                //If there's an error show the component (error modal)
+                                UpdateContext({locIsErrorModalVisible: true});
+                                
+                                //If there's an error also try to patch the error details to the Sharepoint Error list
+                                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                {   user_email: Lower(gblAppUserDetails.mail), 
+                                    error_code: First(Errors(Reservations)).Error,
+                                    error_message: First(Errors(Reservations)).Message, 
+                                    error_log: "Filter( Reservations, user_email = locSelectedUser.Mail, start_date = locSelectedDate, status.Value = 'BOOKED' )",
+                                    error_origin: App.ActiveScreen 
+                                }),
+                                false
+                            ),
+                    
+                    
+                            //  CASE: PERSONAL BOOKING
+                            IfError(
+                                //Verify that the person can have a personal booking
+                                With(First(Filter(Reservations, user_email = Lower(gblAppUserDetails.mail), start_date = locSelectedDate, status.Value = "BOOKED")) As reservation_rec,
+                                    
+                                    If(!IsBlank(reservation_rec),
+                                        If(!IsBlank(reservation_rec.proxy_user_email),
+                                            //Show Booking Error - A booking was made by someone else for them on that same day
+                                            UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.personaloutboundbknsoverlap" && language.Value = gblAppUserLang,text)}); 
+                                            Notify(locBookNowErrorMsg, NotificationType.Error, 10000),
+                                            
+                                            //Show Booking Error - Person already has a booking for themselves on that same day
+                                            UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.personalbknslimit" && language.Value = gblAppUserLang, text)}));
+                                            Notify(locBookNowErrorMsg, NotificationType.Error, 10000),
+                                        //BOOKING IS ALLOWED.
+                                        UpdateContext({locPassedUserCheck: true})
+                                    )
+                                ),
+                    
+                                //If there's an error show the component (error modal)
+                                UpdateContext({locIsErrorModalVisible: true});
+                                
+                                //If there's an error also try to patch the error details to the Sharepoint Error list
+                                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                {   user_email: Lower(gblAppUserDetails.mail), 
+                                    error_code: First(Errors(Reservations)).Error,
+                                    error_message: First(Errors(Reservations)).Message, 
+                                    error_log: "Filter( Reservations, user_email = Lower(gblAppUserDetails.mail), start_date = locSelectedDate, status.Value = 'BOOKED' )",
+                                    error_origin: App.ActiveScreen 
+                                }),
+                                false
+                            )
+                        );
+                    
+                        //Refresh Reservations to prevent a race condition
+                        IfError(
+                            Refresh(Reservations),
+                    
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                                
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Reservations)).Error,
+                                error_message: First(Errors(Reservations)).Message, 
+                                error_log: "Refresh(Reservations);",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            false
+                        );
+                    );
+                    
+                    //Book the seat if the basic check's passed
+                    If(locPassedUserCheck,
+                    
+                        //CASE: USER PASSED BOOKING CHECK
+                        
+                        //Store any bookings that are for the same date, time, desk and status
+                        IfError(
+                            ClearCollect(colReview_FoundRecords, Filter(Reservations, start_date = locSelectedDate && desk_id.Value = Text(locSelectedResult.ID) && (status.Value = "BOOKED" || status.Value = "ON HOLD") && (timeslot_id.Value = Text(locSelectedTimeRange.ID) || timeslot_id.Value = Text(gblAllDayTimeslotID)))),
+                            
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                        
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Reservations)).Error,
+                                error_message: First(Errors(Reservations)).Message, 
+                                error_log: "Refresh(Reservations);",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            Table()
+                        );
+                    
+                        If(!IsEmpty(Filter(colReview_FoundRecords, status.Value = "BOOKED")),
+                    
+                            //CASE: SEAT HAS BEEN BOOKED IN THE MEANTIME
+                            //Show Booking Error
+                            UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.unavailableseat" && language.Value = gblAppUserLang, text)});
+                            Notify(locBookNowErrorMsg, NotificationType.Error, 10000); 
+                            //If the reservation that got booked reservation was not ours, remove our placeholder reservation
+                            If(First(colReview_PlaceholderReservation).ID <> LookUp(colReview_FoundRecords, status.Value = "BOOKED", ID),
+                                RemoveIf(Reservations, ID = First(colReview_PlaceholderReservation).ID && user_email = Blank())
+                            ),
+                    
+                            //CASE: SEAT HAS NOT BEEN BOOKED IN THE MEANTIME
+                            With(First(SortByColumns(colReview_FoundRecords, "Modified", Ascending)) As earliest_reso,
+                                Switch(IsBlank(earliest_reso.user_email) && earliest_reso.status.Value = "ON HOLD",
+                    
+                                    true,
+                                    //CASE: BOOKING HAS NO USER'S ATTACHED TO IT AND IS OF STATUS 'STASIS'
+                                    
+                                    //Refresh Reservations to prevent a race condition
+                                    IfError(
+                                        Refresh(Reservations),
+                    
+                                        //If there's an error show the component (error modal)
+                                        UpdateContext({locIsErrorModalVisible: true});
+                                            
+                                        //If there's an error also try to patch the error details to the Sharepoint Error list
+                                        Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                        {   user_email: Lower(gblAppUserDetails.mail), 
+                                            error_code: First(Errors(Reservations)).Error,
+                                            error_message: First(Errors(Reservations)).Message, 
+                                            error_log: "Refresh(Reservations);",
+                                            error_origin: App.ActiveScreen 
+                                        }),
+                                        false
+                                    );
+                                    //Save the reservation made if there were no errors when updating it
+                                    ClearCollect(colConfirmBooking_Result, 
+                                        IfError(
+                                            //Attach current user to the earliest booking record found
+                                            Patch(Reservations, LookUp(Reservations, ID = earliest_reso.ID && status.Value = "ON HOLD" && user_email = Blank()),
+                                            {
+                                                status: {
+                                                    '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                                    Value: "BOOKED"
+                                                },
+                                                user_email: If(locIsBookingForAnotherUser, Lower(locSelectedUser.Mail), Lower(gblAppUserDetails.mail)),
+                                                proxy_user_email: If(locIsBookingForAnotherUser, Lower(gblAppUserDetails.mail), Blank())
+                                            }),
+                                            //Error found
+                                            If(First(Errors(Reservations)).Error = ErrorKind.Conflict || First(Errors(Reservations)).Error = ErrorKind.ConstraintViolated,
+                                                //CASE: BOOKING CONFLICT
+                                                //Show Booking Error
+                                                UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.unavailableseat" && language.Value = gblAppUserLang, text)});
+                                                Notify(locBookNowErrorMsg, NotificationType.Error, 10000); 
+                                                //CASE: OTHER ERROR - SHOW ERROR MODAL
+                                                UpdateContext({locIsErrorModalVisible: true});
+                                            );      
+                                            //Patch the error to the database
+                                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                                error_code: First(Errors(Reservations)).Error,
+                                                error_message: First(Errors(Reservations)).Message, 
+                                                error_log: "UpdateIf(Reservations, ID = earliest_reso.ID && status.Value = 'ON HOLD' && user_email = Blank()...)",
+                                                error_origin: App.ActiveScreen 
+                                            });
+                                            {}
+                                        )
+                                    )
+                                ); 
+                                //After either successfully making the booking or not
+                                //Refresh Reservations to prevent a race condition
+                                IfError(
+                                    Refresh(Reservations),
+                    
+                                    //If there's an error show the component (error modal)
+                                    UpdateContext({locIsErrorModalVisible: true});
+                                        
+                                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                    {   user_email: Lower(gblAppUserDetails.mail), 
+                                        error_code: First(Errors(Reservations)).Error,
+                                        error_message: First(Errors(Reservations)).Message, 
+                                        error_log: "Refresh(Reservations);",
+                                        error_origin: App.ActiveScreen 
+                                    }),
+                                    false
+                                );
+                                //Remove the booking placeholder we created if it wasn't the earliest record
+                                If(earliest_reso.ID <> First(colReview_PlaceholderReservation).ID, 
+                                    IfError(
+                                        RemoveIf(Reservations, ID = First(colReview_PlaceholderReservation).ID && status.Value = "ON HOLD" & user_email = Blank()),
+                                        If(First(Errors(Reservations)).Error = ErrorKind.Conflict || First(Errors(Reservations)).Error = ErrorKind.ConstraintViolated,
+                                                //CASE: BOOKING CONFLICT
+                                                //Show Booking Error
+                                                UpdateContext({locBookNowErrorMsg: LookUp(colTranslationTable, key = "reviewbooking.error.unavailableseat" && language.Value = gblAppUserLang, text)});
+                                                Notify(locBookNowErrorMsg, NotificationType.Error, 10000); 
+                                                //CASE: OTHER ERROR - SHOW ERROR MODAL
+                                                UpdateContext({locIsErrorModalVisible: true});
+                                        );      
+                                        //Patch the error to the database
+                                        Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                        {   user_email: Lower(gblAppUserDetails.mail), 
+                                            error_code: First(Errors(Reservations)).Error,
+                                            error_message: First(Errors(Reservations)).Message, 
+                                            error_log: "UpdateIf(Reservations, ID = earliest_reso.ID && status.Value = 'ON HOLD' && user_email = Blank()...)",
+                                            error_origin: App.ActiveScreen 
+                                        }),
+                                        Table()
+                                    )
+                                )
+                            )
+                        )
+                    );
+                    
+                    If(!IsEmpty(colConfirmBooking_Result) && !IsBlankOrError(First(colConfirmBooking_Result.ID)),
+                    
+                        //CASE: The booking was successfully made
+                        IfError(
+                            //Get personal record or if booking for another person their record (in user_email property)
+                            With(LookUp(Users, user_email = Lower(gblAppUserDetails.mail)) As rec_to_update,
+                                //Update the number of bookings for the person who made the booking
+                                Patch(Users, rec_to_update, { reservations_made_count: rec_to_update.reservations_made_count + 1})
+                            ),
+                    
+                            //If there's an error show the component (error modal)
+                            UpdateContext({locIsErrorModalVisible: true});
+                        
+                            //If there's an error also try to patch the error details to the Sharepoint Error list
+                            Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Users)).Error,
+                                error_message: First(Errors(Users)).Message, 
+                                error_log: "LookUp(Users, user_email = Lower(gblAppUserDetails.mail))",
+                                error_origin: App.ActiveScreen 
+                            }),
+                            {}
+                        );
+                        UpdateContext({locIsBookingForAnotherUser: false});
+                        Clear(colReview_PlaceholderReservation);
+                        Concurrent(
+                            Clear(colSearch_Buildings),
+                            Clear(colSearch_Floors),
+                            Clear(colSearch_Neighbourhoods), 
+                            Clear(colSearch_SeatingTypes), 
+                            Clear(colSearch_TimeRanges), 
+                            Reset(drpRegion), 
+                            Reset(drpBuilding), 
+                            Reset(drpFloor), 
+                            Reset(drpNeighbourhood), 
+                            Reset(drpSeatingType),
+                            Reset(drpSeatingType), 
+                            Set(gblDateSelected, Blank()),
+                            Set(gblCalendarVisible, false),
+                            Reset(drpTimeRange);
+                        );
+                        Navigate(
+                            'Confirm Booking Screen',
+                            ScreenTransition.Cover
+                        )
+                    );
+                PressedBorderColor: =RGBA(0,0,0,0)
+                PressedColor: =If(locBookNowErrorMsg <> "", LookUp(Colors, Color = "Grey", RGB), Self.Fill)
+                PressedFill: =If(locBookNowErrorMsg <> "", LookUp(Colors, Color = "Grey", RGB), Color.White)
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: |-
+                    =Min(18 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.75,  
+                            1.9),
+                        18 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.75,  
+                            1.9) 
+                    )
+                Text: =LookUp(colTranslationTable, key = "reviewbooking.book" && language.Value = gblAppUserLang, text)
+                Tooltip: =
+                Width: =crdConfirmSeatingRBS.Width
+                X: =canCanvasCardRBS.X + canCanvasCardRBS.Width/2 - Self.Width/2
+                Y: |-
+                    =If(locBookNowErrorMsg <> "",
+                        shpErrorBackgroundRBS.Y + shpErrorBackgroundRBS.Height + crdConfirmSeatingRBS.Y/2,
+                        btnCardBookingSearch.Y + btnCardBookingSearch.Height + crdConfirmSeatingRBS.Y
+                    )
+                ZIndex: =2
+
+            shpErrorBackgroundRBS As rectangle:
+                BorderColor: =LookUp(Colors, Color = "Error Primary", RGB)
+                BorderThickness: |-
+                    =Min(2 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                        2 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                    )
+                Fill: =LookUp(Colors, Color = "Error Secondary", RGB)
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |-
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                        2.5 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                    )
+                Height: |-
+                    =imgErrorIcon.Height + 
+                    lblBookError.Height +
+                    Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2) 
+                    ) * 3
+                Visible: =locBookNowErrorMsg <> ""
+                Width: =crdConfirmSeatingRBS.Width
+                X: =canCanvasCardRBS.X + canCanvasCardRBS.Width/2 - Self.Width/2
+                Y: =btnCardBookingSearch.Y + btnCardBookingSearch.Height + crdConfirmSeatingRBS.Y
+                ZIndex: =3
+
+            imgErrorIcon As image:
+                Height: =Self.Width
+                Image: ='alert_circle (red)'
+                Visible: =locBookNowErrorMsg <> ""
+                Width: |-
+                    =Min(45 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        45 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)
+                        )
+                X: =shpErrorBackgroundRBS.X + shpErrorBackgroundRBS.Width/2 - Self.Width/2
+                Y: |-
+                    =shpErrorBackgroundRBS.Y + 
+                    Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2) 
+                    )
+                ZIndex: =4
+
+            lblBookError As label:
+                Align: =Align.Center
+                AutoHeight: =true
+                Color: =Color.Red
+                Font: =Font.Lato
+                Height: =30
+                Live: =Live.Assertive
+                PaddingLeft: =25
+                PaddingRight: =25
+                PaddingTop: =0
+                Size: |-
+                    =Min(12 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                       12 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)     
+                    )
+                Text: =locBookNowErrorMsg
+                Width: =btnBookNow.Width
+                X: =shpErrorBackgroundRBS.X + shpErrorBackgroundRBS.Width/2 - Self.Width/2
+                Y: |-
+                    =If(locBookNowErrorMsg <> "",
+                        imgErrorIcon.Y + imgErrorIcon.Height + 
+                        Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2) 
+                        ),
+                        btnBookNow.Y - 1
+                    )
+                ZIndex: =5
+
+            btnCardBookingSearch As button:
+                BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                BorderThickness: =0
+                DisabledBorderColor: =Self.BorderColor
+                DisabledColor: =Self.Color
+                DisabledFill: =Self.Fill
+                DisplayMode: =DisplayMode.Disabled
+                Fill: =RGBA(255, 255, 255, 1)
+                FocusedBorderThickness: =0
+                Height: |-
+                    =If(locIsBookingForAnotherUser,
+                        ((lblBookedByNameRBS.Y + lblBookedByNameRBS.Height) - lblBookForPerson.Y) +
+                        //Padding
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                            20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)     
+                        ) * 2,
+                    
+                        ((btnFindAColleague.Y + btnFindAColleague.Height) - lblBookForPerson.Y) +
+                        //Padding
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                            20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)     
+                        ) * 2
+                    )
+                HoverBorderColor: =
+                HoverColor: =RGBA(0,0,0,0)
+                HoverFill: =RGBA(0,0,0,0)
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(10 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        10 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: =0
+                TabIndex: =-1
+                Text: =""
+                Width: =crdConfirmSeatingRBS.Width
+                X: =canCanvasCardRBS.X + canCanvasCardRBS.Width/2 - Self.Width/2
+                Y: =crdConfirmSeatingRBS.Y + crdConfirmSeatingRBS.Height + crdConfirmSeatingRBS.Y
+                ZIndex: =6
+
+            btnFindAColleague As button:
+                AutoDisableOnSelect: =false
+                BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                BorderThickness: =0
+                Fill: =LookUp(Colors, Color = "Muted Primary", RGB)
+                FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                FocusedBorderThickness: |-
+                    =Min(2.5 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75),
+                        2.5 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                ScreenSize.Small, 1,
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,
+                                1.75)
+                    )
+                Font: =Font.'Lato Black'
+                FontWeight: =FontWeight.Bold
+                Height: |-
+                    =Min(70 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25),
+                        70 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 0.75,  
+                            ScreenSize.Medium, 0.9,  
+                            ScreenSize.Large, 1.125,
+                            1.25) 
+                    )
+                HoverBorderColor: =RGBA(0,0,0,0)
+                HoverFill: =LookUp(Colors, Color = "Primary", RGB)
+                OnSelect: =Navigate('Search For User Screen', ScreenTransition.Cover)
+                PressedBorderColor: =RGBA(0,0,0,0)
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: |-
+                    =Min(16 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        16 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                Text: =LookUp(colTranslationTable, key = "reviewbooking.searchforuser" && language.Value = gblAppUserLang, text)
+                Visible: =!locIsBookingForAnotherUser
+                Width: =Self.Size * Len(Self.Text) * 0.85
+                X: =btnCardBookingSearch.X + btnCardBookingSearch.Width/2 - Self.Width/2
+                Y: |-
+                    =lblBookForPerson.Y + lblBookForPerson.Height + 
+                    Min(15 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                       15 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)     
+                    )
+                ZIndex: =15
+
+            crdConfirmSeatingRBS As button:
+                BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                BorderThickness: =0
+                DisabledBorderColor: =Self.BorderColor
+                DisabledColor: =Self.Color
+                DisabledFill: =Self.Fill
+                DisplayMode: =DisplayMode.Disabled
+                Fill: =RGBA(255, 255, 255, 1)
+                FocusedBorderColor: =
+                FocusedBorderThickness: =0
+                Height: |
+                    =( (lblTimeRangeDetailsRBS.Y + lblTimeRangeDetailsRBS.Height) - imgSeatingArrangementPillRBS.Y ) +
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                        20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )* 2
+                HoverBorderColor: =
+                HoverColor: =RGBA(0,0,0,0)
+                HoverFill: =RGBA(0,0,0,0)
+                RadiusBottomLeft: =Self.RadiusTopLeft
+                RadiusBottomRight: =Self.RadiusTopLeft
+                RadiusTopLeft: |-
+                    =Min(10 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        10 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                    )
+                RadiusTopRight: =Self.RadiusTopLeft
+                Size: =0
+                TabIndex: =-1
+                Text: =""
+                Width: |-
+                    =//galSearchResults.TemplateWidth
+                    canScrollableCanvasRBS.Width 
+                    - (10 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,  
+                            ScreenSize.Large, 1.75,
+                            5))
+                    - (25 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,  
+                            ScreenSize.Large, 1.75,
+                            5))
+                X: =canCanvasCardRBS.X + canCanvasCardRBS.Width/2 - Self.Width/2
+                Y: |-
+                    =Min(40 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        40 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)
+                    )    
+                ZIndex: =16
+
+            shpDividerBuildingAndDateRBS As rectangle:
+                Fill: =ColorFade(LookUp(Colors, Color = "Grey", RGB), 50%)
+                Height: |-
+                    =Min(1 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        1 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)
+                    )
+                Width: =crdConfirmSeatingRBS.Width
+                X: =crdConfirmSeatingRBS.X
+                Y: |-
+                    =lblNeighbourhoodDetailsRBS.Y + lblNeighbourhoodDetailsRBS.Height + 
+                    Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                       20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)     
+                    )
+                ZIndex: =23
+
+            shpDividerSeatAndBuildingRBS As rectangle:
+                Fill: =ColorFade(LookUp(Colors, Color = "Grey", RGB), 50%)
+                Height: |-
+                    =Min(1 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2),
+                        1 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5,
+                            ScreenSize.Large, 1.75,  
+                            2)
+                    )
+                Width: =crdConfirmSeatingRBS.Width
+                X: =crdConfirmSeatingRBS.X
+                Y: |-
+                    =imgSeatingTypeRBS.Y + imgSeatingTypeRBS.Height + 
+                    Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                       20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)     
+                    )
+                ZIndex: =31
+
+            lblBookingOverviewHeadingRBS As label:
+                Height: =0
+                Role: =TextRole.Heading3
+                Size: =0
+                Text: =LookUp(colTranslationTable, key = "reviewbooking.bookingdetails.overviewsection" && language.Value = gblAppUserLang, text)
+                Width: =0
+                X: =crdConfirmSeatingRBS.X - 1
+                Y: =crdConfirmSeatingRBS.Y - 1
+                ZIndex: =39
+
+            grpBookForCard As group:
+                Height: =5
+                Width: =5
+                X: =80
+                Y: =80
+                ZIndex: =39
+
+                lblBookedByNameRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: =gblAppUserDetails.givenName & " " & gblAppUserDetails.surname
+                    Visible: =locIsBookingForAnotherUser
+                    Width: =icoRemoveUserRBS.X - Self.X
+                    X: =lblBookForPerson.X
+                    Y: |-
+                        =If(locIsBookingForAnotherUser,
+                            lblBookedBySubtitleRBS.Y + lblBookedBySubtitleRBS.Height,
+                            lblBookedBySubtitleRBS.Y + 1
+                        )
+                    ZIndex: =7
+
+                lblBookedBySubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblFloorSubtitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = gblAppUserLang, text)
+                    Visible: =locIsBookingForAnotherUser
+                    Width: =icoRemoveUserRBS.X - Self.X
+                    X: =lblBookForPerson.X
+                    Y: |-
+                        =If(locIsBookingForAnotherUser,
+                            lblBookingForNameRBS.Y + lblBookingForNameRBS.Height +
+                            Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2),
+                            15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2)     
+                            ),
+                                icoRemoveUserRBS.Y + 1
+                        )
+                    ZIndex: =8
+
+                lblBookingForNameRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: |-
+                        =If(locIsBookingForAnotherUser, locSelectedUser.GivenName & " " & locSelectedUser.Surname & Char(10)
+                        & "(" & Lower(locSelectedUser.Mail) & ")")
+                    Visible: =locIsBookingForAnotherUser
+                    Width: =icoRemoveUserRBS.X - Self.X
+                    X: =lblBookForPerson.X
+                    Y: |-
+                        =If(locIsBookingForAnotherUser,
+                            lblBookingForSubtitleRBS.Y + lblBookingForSubtitleRBS.Height,
+                            lblBookingForSubtitleRBS.Y + 1
+                        )
+                    ZIndex: =9
+
+                lblBookingForSubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblFloorSubtitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = gblAppUserLang, text)
+                    Visible: =locIsBookingForAnotherUser
+                    Width: =icoRemoveUserRBS.X - Self.X
+                    X: =lblBookForPerson.X
+                    Y: =btnFindAColleague.Y + 1
+                    ZIndex: =10
+
+                icoRemoveUserRBS As icon.Search:
+                    AccessibleLabel: |-
+                        =//What is read by the screen reader for the card
+                        //Reads "Remove: First Name, Last Name, from this booking" button 
+                        
+                        LookUp(colTranslationTable, key = "reviewbooking.userlookup.remove" && language.Value = gblAppUserLang, text) & ": " & locSelectedUser.GivenName & " " & locSelectedUser.Surname & ", " & LookUp(colTranslationTable, key = "reviewbooking.userlookup.removeuser" && language.Value = gblAppUserLang, text)
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingRBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsRBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Height: |-
+                        =Min(35 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            35 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2) 
+                        )
+                    HoverColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+                    Icon: =Icon.Cancel
+                    OnSelect: |-
+                        =UpdateContext({ locIsBookingForAnotherUser: false,
+                        locBookNowError: false, locBookNowErrorMsg: ""});
+                    TabIndex: =If(locIsBookingForAnotherUser, 0, -1)
+                    Visible: =locIsBookingForAnotherUser
+                    Width: =Self.Height
+                    X: =lblBookForPerson.X + lblBookForPerson.Width - Self.Width
+                    Y: |-
+                        =If(locIsBookingForAnotherUser,
+                            lblBookingForSubtitleRBS.Y + (lblBookingForSubtitleRBS.Height + (lblBookingForNameRBS.Y - (lblBookingForSubtitleRBS.Y + lblBookingForSubtitleRBS.Height)) + lblBookingForNameRBS.Height)/2 - Self.Height/2,
+                            lblBookingForNameRBS.Y + 1
+                        )
+                    ZIndex: =11
+
+                lblBookForPerson As label:
+                    AutoHeight: =true
+                    Color: =If(locIsBookingForAnotherUser, LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =Self.LineHeight * Self.Size
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Role: =TextRole.Heading4
+                    Size: =lblBuildingInfoTitleRBS.Size
+                    Text: =If(locIsBookingForAnotherUser, LookUp(colTranslationTable, key = "bookingdetails.card.bookingmembers" && language.Value = gblAppUserLang, text), LookUp(colTranslationTable, key = "reviewbooking.header.bookfor" && language.Value = gblAppUserLang, text))
+                    Width: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) 
+                        - Self.X 
+                        - Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)     
+                        )
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =btnCardBookingSearch.Y +
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =13
+
+                icoBookForPersonRBS As image:
+                    DisplayMode: =DisplayMode.View
+                    Height: =Self.Width
+                    Image: ='person_booking (grey)'
+                    OnSelect: =
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Width: |-
+                        =Min(25 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            25 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                        )  
+                    X: =imgSeatingTypeRBS.X
+                    Y: =lblBookForPerson.Y + lblBookForPerson.Height/2 - Self.Height/2
+                    ZIndex: =14
+
+            grpSeatDetails As group:
+                Height: =5
+                Width: =5
+                X: =80
+                Y: =80
+                ZIndex: =43
+
+                lblWorkstationSpecificsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    DisabledColor: =Self.Color
+                    Font: =Font.Lato
+                    Height: =
+                    OnSelect: =
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Size: |-
+                        =Min(14 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2),
+                        14 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,  
+                            2)
+                        )
+                    Text: =Concat(locSelectedResult.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(locSelectedResult.workstation_specifics).Value <> tag.Value, ", "))
+                    Width: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) - 
+                        Self.X - 
+                        20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                    X: =imgSeatingArrangementPillRBS.X
+                    Y: |-
+                        =lblSeatNameRBS.Y + lblSeatNameRBS.Height +
+                        Min(10 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           10 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =32
+
+                lblSeatNameRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    DisabledColor: =Self.Color
+                    DisplayMode: =DisplayMode.Disabled
+                    Font: =Font.'Lato Black'
+                    Height: =lblSeatNameRBS.Size * lblSeatNameRBS.LineHeight + (lblSeatNameRBS.PaddingTop + lblSeatNameRBS.PaddingBottom)
+                    OnSelect: =
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Role: =TextRole.Heading4
+                    Size: |
+                        =Min(22 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            22 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: |-
+                        =Switch(gblAppUserLang, "en", locSelectedResult.desk_name_en, "fr", locSelectedResult.desk_name_fr) & " 
+                        " & LookUp(colSeatingTypeTable, ID = locSelectedResult.seating_type_id.Id, Switch(gblAppUserLang, "en", seating_type_name_en, "fr", seating_type_name_fr))
+                    Width: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) - 
+                        Self.X - 
+                        (15 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,
+                                2))
+                    X: =imgSeatingArrangementPillRBS.X
+                    Y: |-
+                        =imgSeatingArrangementPillRBS.Y + imgSeatingArrangementPillRBS.Height +
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =33
+
+                icoSeatingArrangementRBS As image:
+                    DisplayMode: =DisplayMode.View
+                    Height: =Self.Width
+                    Image: =LookUp(colSeatingArrangementTable, ID = locSelectedResult.seating_arrangement_id.Id, icon_link)
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Width: |-
+                        =If(
+                            LookUp(
+                                colSeatingArrangementTable,
+                                ID = locSelectedResult.seating_arrangement_id.Id,
+                                ID
+                            ) <> LookUp(colSeatingArrangementTable, ID = 3, ID),
+                            Min(25 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                                25 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                            ),    
+                            Min(50 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                                50 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                            )
+                        )
+                    X: |-
+                        =imgSeatingArrangementPillRBS.X + imgSeatingArrangementPillRBS.Width + 25 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)/2
+                    Y: =imgSeatingArrangementPillRBS.Y + imgSeatingArrangementPillRBS.Height/2 - icoSeatingArrangementRBS.Height/2
+                    ZIndex: =34
+
+                imgSeatingTypeRBS As image:
+                    BorderStyle: =BorderStyle.None
+                    DisplayMode: =DisplayMode.View
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: |-
+                        =If(!IsBlank(lblWorkstationSpecificsRBS.Text),
+                            lblWorkstationSpecificsRBS.Y + lblWorkstationSpecificsRBS.Height,
+                            lblSeatNameRBS.Y + lblSeatNameRBS.Height
+                         ) - imgSeatingArrangementPillRBS.Y
+                    Image: =locSelectedResult.desk_image
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            10 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Width: =Min(crdConfirmSeatingRBS.Width * 0.35, Self.Height)
+                    X: |-
+                        =crdConfirmSeatingRBS.X +
+                        20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                    Y: |-
+                        =crdConfirmSeatingRBS.Y +  
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =35
+
+                imgSeatingArrangementPillRBS As image:
+                    DisabledFill: =RGBA(0,0,0,0)
+                    Height: =lblSeatingArrangementTextRBS.Size * 2.3
+                    HoverBorderColor: =RGBA(0,0,0,0)
+                    Image: |
+                        =Switch(
+                            LookUp(
+                                colSeatingArrangementTable,
+                                ID = locSelectedResult.seating_arrangement_id.Id,
+                                ID
+                            ),
+                            LookUp(colSeatingArrangementTable, ID = 1, ID),
+                            purple_pill,
+                            LookUp(colSeatingArrangementTable, ID = 2, ID),
+                            red_pill,
+                            LookUp(colSeatingArrangementTable, ID = 3, ID),
+                            green_pill
+                        )
+                    PressedBorderColor: =RGBA(0,0,0,0)
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(5 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            5 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Width: =Max(colSeatingArrangementTable, Len(seating_arrangement_name_en)) * lblSeatingArrangementTextRBS.Size
+                    X: |-
+                        =imgSeatingTypeRBS.X + imgSeatingTypeRBS.Width + 
+                        (15 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,
+                                2))
+                    Y: |-
+                        =crdConfirmSeatingRBS.Y + 
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =36
+
+                lblSeatingArrangementTextRBS As label:
+                    Align: =Align.Center
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =imgSeatingArrangementPillRBS.Height
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: |
+                        =Min(12 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.35,
+                                ScreenSize.Large, 1.65,  
+                                1.9),
+                            12 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.35,
+                                ScreenSize.Large, 1.65,  
+                                1.9)
+                        )
+                    Text: =LookUp(colSeatingArrangementTable, ID = locSelectedResult.seating_arrangement_id.Id, If(gblAppUserLang = "en", seating_arrangement_name_en, seating_arrangement_name_fr))
+                    Width: =imgSeatingArrangementPillRBS.Width
+                    X: =imgSeatingArrangementPillRBS.X
+                    Y: =imgSeatingArrangementPillRBS.Y
+                    ZIndex: =37
+
+                icoFloorPlanRBS As image:
+                    AccessibleLabel: =LookUp(colTranslationTable, key = "bookingresults.card.floorplan" && language.Value = gblAppUserLang, text)
+                    BorderColor: =RGBA(0,0,0,0)
+                    Fill: =LookUp(Colors, Color = "Background", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingRS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsRS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Height: =Self.Width
+                    HoverBorderColor: =RGBA(0,0,0,0)
+                    HoverFill: =RGBA(0,0,0,0.1)
+                    Image: ='attachment (purple)'
+                    OnSelect: |-
+                        =//Navigate to floorplan page
+                        Navigate(
+                            'Floorplan Screen',
+                            ScreenTransition.Cover,
+                            {
+                                locFloorplanLink: locSelectedResult.desk_floor_plan_url,
+                                locSeatName: Switch(gblAppUserLang, "en", locSelectedResult.desk_name_en, "fr", locSelectedResult.desk_name_fr)
+                            }
+                        )
+                    PaddingBottom: =Self.PaddingTop
+                    PaddingLeft: =Self.PaddingTop
+                    PaddingRight: =Self.PaddingTop
+                    PaddingTop: |
+                        =Min(6 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9),
+                            6 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9)
+                            )
+                    PressedBorderColor: =RGBA(0,0,0,0)
+                    PressedFill: =Self.HoverFill
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            10 * Switch(cmpScreenFunctionsRS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    TabIndex: =0
+                    Width: |
+                        =Min(40 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9),
+                            40 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.9)
+                            )
+                    X: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) - Self.Width - 
+                        10 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                    Y: |-
+                        =crdConfirmSeatingRBS.Y + 
+                        10 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                    ZIndex: =38
+
+            grpBuildingInfo As group:
+                Height: =5
+                Width: =5
+                X: =60
+                Y: =60
+                ZIndex: =48
+
+                lblNeighbourhoodDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: =Switch(gblAppUserLang, "fr", locSelectedNeighbourhood.neighbourhood_name_fr, locSelectedNeighbourhood.neighbourhood_name_en)
+                    Width: |
+                        =lblBuildingInfoTitleRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: =lblNeighbourhoodSubtitleRBS.Y + lblNeighbourhoodSubtitleRBS.Height 
+                    ZIndex: =24
+
+                lblNeighbourhoodSubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblFloorSubtitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.title" && language.Value = gblAppUserLang, text)
+                    Width: |
+                        =lblBuildingInfoTitleRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =lblFloorDetailsRBS.Y + lblFloorDetailsRBS.Height + 
+                        Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =25
+
+                lblFloorDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: =Switch(gblAppUserLang, "fr", locSelectedFloor.floor_name_fr, locSelectedFloor.floor_name_en)
+                    Width: |
+                        =lblBuildingInfoTitleRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: =lblFloorSubtitleRBS.Y + lblFloorSubtitleRBS.Height 
+                    ZIndex: =26
+
+                lblFloorSubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: |
+                        =Min(14 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            14 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.floor.title" && language.Value = gblAppUserLang, text)
+                    Width: |
+                        =lblBuildingInfoTitleRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =lblBuildingDetailsRBS.Y + lblBuildingDetailsRBS.Height +
+                        Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =27
+
+                lblBuildingDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: |
+                        =Min(16 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            16 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: |-
+                        =Switch(gblAppUserLang, "fr", locSelectedBuilding.building_name_fr, locSelectedBuilding.building_name_en) & "
+                        " & Switch(gblAppUserLang, "fr", locSelectedBuilding.building_add_fr, locSelectedBuilding.building_add_en) & "
+                        " & locSelectedBuilding.city & ", " & locSelectedBuilding.province & "
+                        " & Left(locSelectedBuilding.postal_code, 3) & " " & Right(locSelectedBuilding.postal_code, 3)
+                    Width: |
+                        =lblBuildingInfoTitleRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =lblBuildingInfoTitleRBS.Y + lblBuildingInfoTitleRBS.Height +
+                        Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =28
+
+                lblBuildingInfoTitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Role: =TextRole.Heading4
+                    Size: |
+                        =Min(18 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            18 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.header.location" && language.Value = gblAppUserLang, text)
+                    Width: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) -
+                        Self.X - 
+                        Min(30 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                           30 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)     
+                        )
+                    X: =icoLocationRBS.X + icoLocationRBS.Width * 1.85
+                    Y: |-
+                        =shpDividerSeatAndBuildingRBS.Y + shpDividerSeatAndBuildingRBS.Height +
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =29
+
+                icoLocationRBS As image:
+                    DisplayMode: =DisplayMode.View
+                    Height: =Self.Width
+                    Image: ='building (grey)'
+                    OnSelect: =
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Width: |-
+                        =Min(25 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            25 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                        )  
+                    X: =imgSeatingTypeRBS.X
+                    Y: =lblBuildingInfoTitleRBS.Y + lblBuildingInfoTitleRBS.Height/2 - Self.Height/2
+                    ZIndex: =30
+
+            grpBookingDetails As group:
+                Height: =5
+                Width: =5
+                X: =60
+                Y: =60
+                ZIndex: =48
+
+                lblTimeRangeDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: =Switch(gblAppUserLang, "fr", locSelectedTimeRange.time_range_fr, locSelectedTimeRange.time_range_en)
+                    Width: =lblBookingDetailsRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: =lblTimeRangeSubtitleRBS.Y + lblTimeRangeSubtitleRBS.Height 
+                    ZIndex: =17
+
+                lblTimeRangeSubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblFloorSubtitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "bookingsearch.timerange.title" && language.Value = gblAppUserLang, text)
+                    Width: =lblBookingDetailsRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =lblDateDetailsRBS.Y + lblDateDetailsRBS.Height +
+                        Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =18
+
+                lblDateDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblBuildingDetailsRBS.Size
+                    Text: |-
+                        =Proper(Switch(gblAppUserLang, "fr", 
+                            Text(locSelectedDate,
+                            "[$-en-US]dddd d, mmmm, yyyy",
+                            "fr-FR"),     
+                            
+                            Text(locSelectedDate,
+                            "[$-en-US]dddd, mmmm d, yyyy",
+                            "en-CA"
+                            )))
+                    Width: =lblBookingDetailsRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: =lblDateSubtitleRBS.Y + lblDateSubtitleRBS.Height 
+                    ZIndex: =19
+
+                lblDateSubtitleRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =lblFloorSubtitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.date" && language.Value = gblAppUserLang, text)
+                    Width: =lblBookingDetailsRBS.Width
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =lblBookingDetailsRBS.Y + lblBookingDetailsRBS.Height +
+                        Min(15 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           15 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =20
+
+                lblBookingDetailsRBS As label:
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Semibold
+                    Height: =Self.LineHeight * Self.Size
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Role: =TextRole.Heading4
+                    Size: =lblBuildingInfoTitleRBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.header.date" && language.Value = gblAppUserLang, text)
+                    Width: |-
+                        =(crdConfirmSeatingRBS.X + crdConfirmSeatingRBS.Width) 
+                        - Self.X 
+                        - Min(30 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                           30 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)     
+                        )
+                    X: =lblBuildingInfoTitleRBS.X
+                    Y: |-
+                        =shpDividerBuildingAndDateRBS.Y + shpDividerBuildingAndDateRBS.Height +
+                        Min(20 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                           20 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)     
+                        )
+                    ZIndex: =21
+
+                icoDateRBS As image:
+                    DisplayMode: =DisplayMode.View
+                    Height: =Self.Width
+                    Image: ='calendar (grey)'
+                    OnSelect: =
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Width: |-
+                        =Min(25 *  Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            25 *  Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                        )  
+                    X: =imgSeatingTypeRBS.X
+                    Y: =lblBookingDetailsRBS.Y + lblBookingDetailsRBS.Height/2 - Self.Height/2
+                    ZIndex: =22
+
+    lblBookingDetailsHeadingRBS As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "reviewbooking.bookingdetailssection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropRBS.X
+        Y: =cmpHeaderRBS.Y + cmpHeaderRBS.Height
+        ZIndex: =11
+
+    cmpHeaderRBS As cmp_PageHeading:
+        BackNavigateTo: |-
+            =Table({ Key: "navto", NavigationLink: 'Results Screen'})
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HeadingText: =LookUp(colTranslationTable, key = "header.reviewbooking" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropRBS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsRBS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingRBS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =12
+
+    cmpLoadingAnimationRBS As cmp_LoadingAnimation:
+        Height: =cmpHeaderRBS.Height
+        IsTextVisible: =locIsLoadingVisible
+        LoadingText: =LookUp(colTranslationTable, key = "loading.text" && language.Value = gblAppUserLang, text)
+        PrimaryColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+        Visible: =true
+        X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+        Y: =cmpHeaderRBS.Y + cmpHeaderRBS.Height/2 - Self.Height/2
+        ZIndex: =13
+
+    grpScreenSizingRBS As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =13
+
+        lblScreenWidthSizingRBS As label:
+            Height: =0
+            Size: =21
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+            Y: =shpPageBackdropRBS.Y + shpPageBackdropRBS.Height
+            ZIndex: =3
+
+        cmpScreenFunctionsRBS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+            Y: =shpPageBackdropRBS.Y + shpPageBackdropRBS.Height
+            ZIndex: =4
+
+    cmpDoneAnimationRBS As cmp_LoadingDoneAnimation:
+        DoneLoadingText: =LookUp(colTranslationTable, key = "loadingdone.text" && language.Value = gblAppUserLang, text)
+        Height: =cmpHeaderRBS.Height
+        IsTextVisible: =locIsDoneLoadingVisible
+        Visible: =true
+        X: =shpPageBackdropRBS.X + shpPageBackdropRBS.Width
+        Y: =cmpHeaderRBS.Y + cmpHeaderRBS.Height/2 - Self.Height/2
+        ZIndex: =14
+
+    cmpErrorModalRBS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: =LookUp(colTranslationTable, key = "errorpage.subtitle" && language.Value = gblAppUserLang, text)
+        Display_ErrorTitle: =LookUp(colTranslationTable, key = "errorpage.title" && language.Value = gblAppUserLang, text)
+        Height: =shpPageBackdropRBS.Height
+        ModalHeight: =shpPageBackdropRBS.Height
+        ModalWidth: =shpPageBackdropRBS.Width
+        ScreenSize_Height: =cmpScreenFunctionsRBS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingRBS.Text
+        Visible: =locIsErrorModalVisible
+        Width: =shpPageBackdropRBS.Width
+        X: =shpPageBackdropRBS.X
+        Y: =shpPageBackdropRBS.Y
+        ZIndex: =15
+
+    grpLoadingPageRBS As group:
+        Height: =5
+        Width: =5
+        X: =17.5
+        Y: =225.8
+        ZIndex: =19
+
+        crdLoadingPageRBS As button:
+            BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: |-
+                =shpPageBackdropRBS.Height - (Self.Y) - If(
+                Parent.Size=ScreenSize.Small,
+                2,
+                4
+                )
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: |-
+                =15 * Switch(
+                    Value(lblScreenWidthSizingRS.Text),
+                    ScreenSize.Small,
+                    1,
+                    ScreenSize.Medium,
+                    1.5,
+                    ScreenSize.Large,
+                    1.75,
+                    2
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: =-1
+            Text: =
+            Visible: =locIsPageLoadingVisible
+            Width: |-
+                =canScrollableCanvasRBS.Width 
+                - (10 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+            X: =shpPageBackdropRS.X + shpPageBackdropRS.Width/2 - Self.Width/2
+            Y: =cmpHeaderRBS.Y + cmpHeaderRBS.Height + crdConfirmSeatingRBS.Y
+            ZIndex: =8
+
+        imgLoadingPageRBS As image:
+            DisplayMode: =DisplayMode.View
+            Height: =Self.Width
+            Image: =loading_spinner
+            Visible: =locIsPageLoadingVisible
+            Width: =Min(crdLoadingPageRBS.Height/2.5, crdLoadingPageRBS.Width/2.5)
+            X: =crdLoadingPageRBS.X + crdLoadingPageRBS.Width/2 - Self.Width/2
+            Y: |-
+                =//crdLoadingPageRBS.Y + crdLoadingPageRBS.Height/2 - Self.Height/2
+                shpPageBackdropRBS.Y + shpPageBackdropRBS.Height/2 - Self.Height/2 
+            ZIndex: =9
+

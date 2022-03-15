@@ -1,0 +1,237 @@
+cmp_ErrorModal As CanvasComponent:
+    Color_Background: =RGBA(0, 0, 0, 1)
+    Color_Focused: =RGBA(0, 0, 0, 1)
+    Color_Primary: =RGBA(0, 0, 0, 1)
+    Display_ErrorSubtitle: ="Error Subtitle"
+    Display_ErrorTitle: ="Error Title"
+    Fill: =RGBA(0, 0, 0, 0)
+    Height: =Self.ModalHeight
+    ModalHeight: =App.DesignHeight
+    ModalWidth: =App.DesignWidth
+    ScreenSize_Height: =2
+    ScreenSize_Width: =1
+    Width: =Self.ModalWidth
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    recBackgroundC_EM As rectangle:
+        Fill: =cmp_ErrorModal.Color_Background
+        Height: =cmp_ErrorModal.Height
+        Width: =cmp_ErrorModal.Width
+        ZIndex: =1
+
+    crdErrorC_EM As button:
+        BorderColor: =
+        BorderThickness: =0
+        Fill: =RGBA(255, 255, 255, 1)
+        FocusedBorderColor: =cmp_ErrorModal.Color_Focused
+        FocusedBorderThickness: |-
+            =Min(2.5 * Switch(cmp_ErrorModal.ScreenSize_Width,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                2.5 * Switch(cmp_ErrorModal.ScreenSize_Height,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+            )
+        Height: |-
+            =400 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 0.75,  
+                    ScreenSize.Medium, 1,
+                    ScreenSize.Large, 1.5, 
+                    1.75)
+        HoverBorderColor: =
+        HoverColor: =
+        HoverFill: =
+        RadiusBottomLeft: =Self.RadiusTopLeft
+        RadiusBottomRight: =Self.RadiusTopLeft
+        RadiusTopLeft: |-
+            =Min(25 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2),
+                25 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2)
+            )
+        RadiusTopRight: =Self.RadiusTopLeft
+        Size: =0
+        TabIndex: =-1
+        Text: =cmp_ErrorModal.Display_ErrorTitle & ", " & cmp_ErrorModal.Display_ErrorSubtitle
+        Tooltip: =
+        Width: |-
+            =recBackgroundC_EM.Width
+            - (10 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+        X: =cmp_ErrorModal.Width/2 - Self.Width/2
+        Y: |-
+            =(cmp_ErrorModal.Height)/2 - 
+            (Self.Height)/2
+        ZIndex: =3
+
+    lblErrorBodyC_EM As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Error Primary", RGB)
+        Font: =Font.Lato
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        Size: |-
+            =Min(14 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                14 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        Text: |-
+            =//"Error Code: " & _errorCode
+            //"Error Code: " & ERROR_OBJECT.Error
+        Visible: =false
+        Width: =crdErrorC_EM.Width * 0.8
+        X: =crdErrorC_EM.X + crdErrorC_EM.Width/2 - Self.Width/2
+        Y: |-
+            =lblErrorSubtitleC_EM.Y + lblErrorSubtitleC_EM.Height + 
+            Min(10 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                10 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        ZIndex: =5
+
+    lblErrorSubtitleC_EM As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =cmp_ErrorModal.Color_Primary
+        Font: =Font.'Lato Black'
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        Size: |-
+            =Min(14 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                14 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        Text: =cmp_ErrorModal.Display_ErrorSubtitle
+        Width: =crdErrorC_EM.Width * 0.8
+        X: =crdErrorC_EM.X + crdErrorC_EM.Width/2 - Self.Width/2
+        Y: |-
+            =lblErrorTitleC_EM.Y + lblErrorTitleC_EM.Height + 
+            Min(10 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                10 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        ZIndex: =6
+
+    lblErrorTitleC_EM As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =cmp_ErrorModal.Color_Primary
+        Font: =Font.'Lato Black'
+        Height: =70
+        Size: |-
+            =Min(22 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                22 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        Text: =cmp_ErrorModal.Display_ErrorTitle
+        Width: =crdErrorC_EM.Width * 0.8
+        X: |
+            =crdErrorC_EM.X + crdErrorC_EM.Width/2 - Self.Width/2
+        Y: |-
+            =imgErrorIconC_EM.Y + imgErrorIconC_EM.Height +
+            Min(18 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                18 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        ZIndex: =7
+
+    imgErrorIconC_EM As image:
+        Height: =Self.Width
+        Image: =alert_circle
+        Visible: |-
+            =//_isFeedbackDisplayed
+            true
+        Width: =Min(crdErrorC_EM.Width/2, crdErrorC_EM.Height/3)
+        X: =crdErrorC_EM.X + crdErrorC_EM.Width/2 - Self.Width/2
+        Y: |-
+            =crdErrorC_EM.Y + crdErrorC_EM.Height/2 -
+            (Self.Height + 
+            Min(18 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2),
+                18 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2) 
+            ) +
+            lblErrorTitleC_EM.Height +
+            Min(10 * Switch(cmp_ErrorModal.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                10 * Switch(cmp_ErrorModal.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) +
+            lblErrorSubtitleC_EM.Height
+            ))/2
+        ZIndex: =8
+

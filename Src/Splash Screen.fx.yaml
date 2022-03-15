@@ -1,0 +1,550 @@
+"'Splash Screen' As screen":
+    OnVisible: |
+        =UpdateContext({locIsErrorModalVisible: false, locPageHeading: ""});
+        
+        //Delay navigation (if not first time load) for 2.5 seconds
+        Set(gblSplashScreenTimerDuration, 2500); 
+
+    shpScreenBackdropSPLSHS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropSPLSHS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    timFade As timer:
+        AutoPause: =false
+        AutoStart: =true
+        Duration: =gblSplashScreenTimerDuration
+        Height: =0
+        OnTimerEnd: |-
+            =//If it's not the first time the user is opening the app and there's no startup errors, auto redirect them to the my bookings page
+            If(!gblIsFirstTimeLoad && (!locIsErrorModalVisible && !gblIsAppStartUpErrorModalVisible),
+                Navigate(
+                    'Search Screen',
+                    Fade
+                )
+            );
+            Set(gblStartSplashScreenTimer, false);
+        Start: =gblStartSplashScreenTimer
+        TabIndex: =-1
+        Visible: =false
+        Width: =0
+        X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width
+        Y: =shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height
+        ZIndex: =5
+
+    lblAppHint As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Primary", RGB)
+        Font: =Font.Lato
+        FontWeight: =FontWeight.Semibold
+        Height: =70
+        Size: |-
+            =Min(20 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                20 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125,  
+                    ScreenSize.Large, 1.25,
+                    1.5)
+            )
+        Text: |-
+            =//Text cannot load in time from SP and by the time it does load the splash screen timer has finished
+            gblAppHint
+        Visible: =!gblIsFirstTimeLoad
+        Width: =shpPageBackdropSPLSHS.Width
+        X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width/2 - Self.Width/2
+        Y: |-
+            =shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height - Self.Height - 40 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,  
+                    ScreenSize.Large, 1.5,
+                    2)
+        ZIndex: =6
+
+    lblAppName As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =LookUp(Colors, Color = "Primary", RGB)
+        Font: =Font.'Lato Black'
+        Height: =70
+        Size: |-
+            =/*36 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,  
+                    ScreenSize.Large, 1.5,
+                    1.75)*/
+            Min(36 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9),
+                36 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    1.9) 
+            )
+        Text: ="B U R O"
+        Width: =shpPageBackdropSPLSHS.Width
+        X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width/2 - Self.Width/2
+        Y: |-
+            =imgAppIcon.Y + imgAppIcon.Height + 
+            Min(15 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 2,
+                    3),
+                15 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 2,
+                    3)
+            )    
+        ZIndex: =7
+
+    imgAppIcon As image:
+        Height: =Self.Width
+        Image: =app_icon
+        ImagePosition: =ImagePosition.Fill
+        PaddingBottom: =5
+        PaddingLeft: =5
+        PaddingRight: =5
+        PaddingTop: =5
+        Width: |-
+            =Min(80 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    1.75),
+                80 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    1.75)
+            )
+        X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width/2 - Self.Width/2
+        Y: |+
+            =shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height/2 
+            - (Self.Height + 
+            Min(15 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 2,
+                    3),
+                15 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 2,
+                    3)
+            )
+             + lblAppName.Height)/2
+            
+        ZIndex: =8
+
+    lblChooseLanguageHeadingSPLSHS As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "splashscreen.applanguagesection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropSPLSHS.X
+        Y: =shpWelcomeArea.Y
+        ZIndex: =13
+
+    btnWelcomeCombinedActionSPLSHS As button:
+        Height: =70
+        OnSelect: |
+            =//Add the user to the DB and set their langauge
+            If(!IsEmpty(
+                IfError(
+                    Patch(
+                        Users,
+                        Defaults(Users),
+                        {
+                            user_email: Lower(gblAppUserDetails.mail),
+                            language: {
+                                '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                Value: LookUp(LanguageOptions, ShortHand = gblAppUserLang, Language)
+                            }
+                        }
+                    ),
+                    //If there's an error show the component (error modal)
+                    UpdateContext({locIsErrorModalVisible: true});
+            
+                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                        { user_email: Lower(gblAppUserDetails.mail), 
+                            error_code: First(Errors(Users)).Error, 
+                            error_message: First(Errors(Users)).Message, 
+                            error_log: "Patch( Users, Defaults(Users), { user_email: Lower(gblAppUserDetails.mail), ...})", 
+                            error_origin: App.ActiveScreen 
+                        }
+                    );
+                    {}
+                    )
+                ),
+                //If no errors occured so far, allow the user to enter the app
+                If( (!locIsErrorModalVisible && !gblIsAppStartUpErrorModalVisible), 
+                    Navigate('My Profile Screen', ScreenTransition.Fade);
+                    //Load the default Search Page text
+                    Concurrent(
+                        Set(gblRegionDefaultText, LookUp(colTranslationTable, key = "bookingsearch.region.default" && language.Value = gblAppUserLang, text)),
+                        Set(gblBuildingDefaultText, LookUp(colTranslationTable, key = "bookingsearch.building.default" && language.Value = gblAppUserLang, text)),
+                        Set(gblFloorDefaultText, LookUp(colTranslationTable, key = "bookingsearch.floor.default" && language.Value = gblAppUserLang, text)),
+                        Set(gblNeighbourhoodDefaultText, LookUp(colTranslationTable, key = "bookingsearch.neighbourhood.default" && language.Value = gblAppUserLang, text)),
+                        Set(gblSeatingTypeDefaultText, LookUp(colTranslationTable, key = "bookingsearch.seatingtype.default" && language.Value = gblAppUserLang, text ))
+                    );
+            
+                    //  -- SEARCH PAGE -- 
+                    //Load Region Table to speed up Search Page
+                    IfError(
+                        //1. Retreive ID Column 
+                        //2. Conditionally Retrieve Building Columns Based on Language
+                        //3. Insert Placeholder "Select Your ..." into 2.
+                        ClearCollect(
+                            colSearch_Regions,
+                            //Remove Region Restriction After Usability
+                            ForAll(Filter(Regions, ID = 1 || ID = 3) As region, { ID: region.ID, Result: Switch(gblAppUserLang, "fr", region.region_name_fr, region.region_name_en) }),
+                            {
+                                ID: -1,
+                                Result: gblRegionDefaultText
+                            }
+                        ),
+            
+                        //If there's an error show the component (error modal) on the splash screen
+                        Set(gblIsAppStartUpErrorModalVisible, true);
+            
+                        //If there's an error also try to patch the error details to the Sharepoint Error list
+                        Patch(ExternalErrors, Defaults(ExternalErrors), 
+                            {   user_email: Lower(gblAppUserDetails.mail), 
+                                error_code: First(Errors(Regions)).Error,
+                                error_message: First(Errors(Regions)).Message,
+                                error_log: "ClearCollect(colSearch_Regions, ...)", 
+                                error_origin: "App OnStart" 
+                            }
+                        ),
+                        Table()
+                    );
+                    
+                )
+            
+            )
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        RadiusBottomLeft: =0
+        RadiusBottomRight: =0
+        RadiusTopLeft: =0
+        RadiusTopRight: =0
+        Size: =0
+        TabIndex: =-1
+        Text: =""
+        Visible: =false
+        Width: =0
+        X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width
+        Y: =shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height
+        ZIndex: =14
+
+    lblWelcomePageHeadingSPLSHS As label:
+        Color: =RGBA(0, 0, 0, 0)
+        Height: =0
+        Live: =Live.Assertive
+        Role: =TextRole.Heading1
+        Size: =12
+        Text: |-
+            =If(!gblStartSplashScreenTimer,
+            LookUp(colTranslationTable, key = "splashscreen.pagetitle.welcome" && language.Value = gblAppUserLang, text),
+            "")
+        Width: =0
+        Wrap: =false
+        X: =shpPageBackdropSPLSHS.X
+        Y: =shpPageBackdropSPLSHS.Y
+        ZIndex: =15
+
+    grpScreenSizingSPLSHS As group:
+        Height: =5
+        Width: =5
+        X: =60
+        Y: =60
+        ZIndex: =17
+
+        lblScreenWidthSizingSPLSHS As label:
+            Height: =0
+            Size: =0
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width
+            Y: =shpPageBackdropRS.Y + shpPageBackdropRS.Height
+            ZIndex: =3
+
+        cmpScreenFunctionsSPLSHS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropSPLSHS.X + shpPageBackdropSPLSHS.Width
+            Y: =shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height
+            ZIndex: =4
+
+    cmpErrorModalSPLSHS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: |-
+            =//Check if the Translations contain the error modal title translation
+            If(
+                IsBlank(
+                    LookUp(
+                        colTranslationTable,
+                        key = "errorpage.subtitle" && language.Value = gblAppUserLang,
+                        text
+                    )
+                ),
+                //If there was an error in getting translations, we must provide the user with a hardcoded translation in english
+                "Please try relaunching the application.",
+                
+                LookUp(
+                    colTranslationTable,
+                    key = "errorpage.subtitle" && language.Value = gblAppUserLang,
+                    text
+                )
+            )
+        Display_ErrorTitle: |-
+            =//Check if the Translations contain the error modal title translation
+            If(
+                IsBlank(
+                    LookUp(
+                        colTranslationTable,
+                        key = "errorpage.title" && language.Value = gblAppUserLang,
+                        text
+                    )
+                ),
+                //If there was an error in getting translations, we must provide the user with a hardcoded translation in english
+                "Something went wrong. Please initialize the app again.",
+                
+                LookUp(
+                    colTranslationTable,
+                    key = "errorpage.title" && language.Value = gblAppUserLang,
+                    text
+                )
+            )
+        Height: =shpPageBackdropSPLSHS.Height
+        ModalHeight: =shpPageBackdropSPLSHS.Height
+        ModalWidth: =shpPageBackdropSPLSHS.Width
+        ScreenSize_Height: =cmpScreenFunctionsSPLSHS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingSPLSHS.Text
+        Visible: =locIsErrorModalVisible || gblIsAppStartUpErrorModalVisible
+        Width: =shpPageBackdropSPLSHS.Width
+        X: =shpPageBackdropSPLSHS.X
+        Y: =shpPageBackdropSPLSHS.Y
+        ZIndex: =18
+
+    grpFirstTimeWelcomeCard As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =19
+
+        shpWelcomeArea As rectangle:
+            Fill: =Color.White
+            Height: |
+                =(shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height - (lblAppName.Y + lblAppName.Height)) * .70
+            Visible: =gblIsFirstTimeLoad
+            Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4) - Self.FocusedBorderThickness
+            X: =(Parent.Width-Self.Width) /2
+            Y: =(shpPageBackdropSPLSHS.Y + shpPageBackdropSPLSHS.Height) - Self.Height 
+            ZIndex: =9
+
+        shpDividerButtonsSPLSHS As rectangle:
+            Fill: =LookUp(Colors, Color = "Grey", RGB)
+            Height: =btnWelcome.Height * 3
+            Visible: =gblIsFirstTimeLoad
+            Width: |-
+                =Min(1 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    1 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            X: =shpWelcomeArea.X + shpWelcomeArea.Width/2 - Self.Width/2
+            Y: =shpWelcomeArea.Y + shpWelcomeArea.Height/2 - Self.Height/2
+            ZIndex: =10
+
+        btnBienvenue As button:
+            BorderThickness: =0
+            Color: =Color.White
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Font: =Font.Lato
+            Height: |-
+                =Min(60 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9),
+                    60 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9)
+                )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =ColorFade(Self.Fill, 20%)
+            OnSelect: |-
+                =//Default the app language to French
+                Set(
+                    gblAppUserLang,
+                    "fr"
+                );
+                Select(btnWelcomeCombinedActionSPLSHS);
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.HoverColor
+            PressedFill: =ColorFade(Self.Fill, 30%)
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(15 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    15 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: |-
+                =Min(25 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9),
+                    25 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9)
+                )
+            Text: =LookUp(colTranslationTable, key = "splashscreen.card.button.welcome" && language.Value = "fr", text)
+            Visible: =gblIsFirstTimeLoad
+            Width: =shpWelcomeArea.Width * 0.35
+            X: =shpWelcomeArea.X + (3 * shpWelcomeArea.Width/4) - Self.Width/2
+            Y: =shpWelcomeArea.Y + shpWelcomeArea.Height/2 - Self.Height/2
+            ZIndex: =11
+
+        btnWelcome As button:
+            BorderThickness: =0
+            Color: =Color.White
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Font: =Font.Lato
+            Height: |-
+                =Min(60 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9),
+                    60 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9)
+                )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =ColorFade(Self.Fill, 20%)
+            OnSelect: |-
+                =//Default the app language to English
+                Set(
+                    gblAppUserLang,
+                    "en"
+                );
+                Select(btnWelcomeCombinedActionSPLSHS);
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.Color
+            PressedFill: =ColorFade(Self.Fill, 30%)
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(15 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    15 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: |-
+                =Min(25 * Switch(Value(lblScreenWidthSizingSPLSHS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9),
+                    25 * Switch(cmpScreenFunctionsSPLSHS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.2,
+                        ScreenSize.Large, 1.4,  
+                        1.9)
+                )
+            Text: =LookUp(colTranslationTable, key = "splashscreen.card.button.welcome" && language.Value = "en", text)
+            Visible: =gblIsFirstTimeLoad
+            Width: =shpWelcomeArea.Width * 0.35
+            X: =shpWelcomeArea.X + shpWelcomeArea.Width/4 - Self.Width/2
+            Y: =shpWelcomeArea.Y + shpWelcomeArea.Height/2 - Self.Height/2
+            ZIndex: =12
+

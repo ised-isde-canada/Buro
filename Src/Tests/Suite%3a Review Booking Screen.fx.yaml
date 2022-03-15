@@ -1,0 +1,790 @@
+"'69f10f56-ec92-4965-b075-b02898bbb0bf' As TestSuite":
+    Description: =""
+    DisplayName: |-
+        ="Suite: Review Booking Screen"
+
+    "'4355bd0f-35d0-41ac-80bb-f50accb40821' As TestCase":
+        Description: ="Create a booking for a myself, verify its creation, try to make another booking for myself, observe maximum bookings reached"
+        DisplayName: |-
+            ="Case: [Personal Booking] - Too many bookings for the same day"
+
+        Step1 As TestStep:
+            Description: ="Delete any bookings for myself future booking"
+            Screen: =Test Screen-NotVisible
+            Value: =RemoveIf(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestDate && status.Value = "BOOKED")
+
+        Step9 As TestStep:
+            Description: ="Create a booking for myself for today"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =Set(TestBooking, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: First(Desks).ID, Value: First(Desks).ID }, user_email: Lower(gblAppUserDetails.mail), proxy_user_email: "", start_date: TestDate, timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: TestTimeRange.ID, Value: TestTimeRange.ID } }))
+
+        Step6 As TestStep:
+            Description: ="Bypass Search Screen"
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step11 As TestStep:
+            Description: ="Save the Seat we'll try to reserve"
+            Screen: =Results Screen
+            Value: =Set(TestSelectedSeat, First(galSearchResults.AllItems));
+
+        Step10 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step7 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step8 As TestStep:
+            Description: ="Select Book Now"
+            Screen: =Review Booking Screen
+            Value: =Select(btnBookNow)
+
+        Step5 As TestStep:
+            Description: ="Verify the Record was not created in the DB"
+            Screen: =Confirm Booking Screen
+            Value: |-
+                =Assert(IsBlank(LookUp(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID), ID)), "Expected: true, Actual: " & IsBlank(LookUp(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID), ID)))
+
+        Step4 As TestStep:
+            Description: ="Verify that the Book Now button is disabled"
+            Screen: =Review Booking Screen
+            Value: =Assert(btnBookNow.Visible = false)
+
+        Step3 As TestStep:
+            Description: ="Verify a maximum outbound bookings error is shown"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(lblBookError.Text = LookUp(
+                colTranslationTable, key = "reviewbooking.error.maxpersonalbookings" && language.Value = gblAppUserLang, text))
+
+        Step2 As TestStep:
+            Description: ="Delete the booking created earlier"
+            Screen: =Review Booking Screen
+            Value: =RemoveIf(Reservations, ID = TestBooking.ID)
+
+    "'a5c52dd9-b5f8-4b36-a78a-9c9d6f01adf4' As TestCase":
+        Description: ="Create a booking for a colleague, verify its creation, try to make another booking for the same colleague, observe maximum bookings reached"
+        DisplayName: |-
+            ="Case: [Outbound Booking] - Too many outbound bookings on a certain day for the selected person "
+
+        Step1 As TestStep:
+            Description: ="Delete bookings made for colleague for future booking"
+            Value: =RemoveIf(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email <> Blank() && start_date = TestDate && status.Value = "BOOKED")
+
+        Step2 As TestStep:
+            Description: ="Create a booking for my colleague for future"
+            Screen: =My Bookings Screen
+            Value: |-
+                =Set(TestBooking, Patch(Reservations, Defaults(Reservations), { status: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Value: "BOOKED" }, desk_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: First(Desks).ID, Value: First(Desks).ID }, user_email: Lower(TestAccount.Mail), proxy_user_email: Lower(gblAppUserDetails.mail), start_date: TestDate, timeslot_id: { '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference", Id: TestTimeRange.ID, Value: TestTimeRange.ID } }))
+
+        Step15 As TestStep:
+            Description: ="Bypass Search Screen"
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step16 As TestStep:
+            Description: ="Save the Seat we'll try to reserve"
+            Value: =Set(TestSelectedSeat, First(galSearchResults.AllItems));
+
+        Step5 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step14 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step9 As TestStep:
+            Description: ="Select the Search for Colleague Text Box"
+            Value: =Select(btnSearchBarRBS)
+
+        Step10 As TestStep:
+            Description: ="Verify Redirection to User Search Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Search For User Screen', "Expected: Search For User Screen, Actual: " & App.ActiveScreen.Name)
+
+        Step13 As TestStep:
+            Description: ="Navigate to Review Your Booking with the account we're booking for"
+            Value: |-
+                =Navigate('Review Booking Screen', ScreenTransition.CoverRight, {locSelectedUser: TestAccount})
+
+        Step4 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected: Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step7 As TestStep:
+            Description: ="Verify the selected user's name and email was attached to the booking card"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(Lower(lblBookingForNameRBS.Text) = Lower(TestAccount.GivenName) & " " & Lower(TestAccount.Surname) & "  (" & Lower(TestAccount.Mail) & ")", "Expected :" & Lower(TestAccount.GivenName) & " " & Lower(TestAccount.Surname) & "  (" & Lower(TestAccount.Mail) & ")" & ", Actual : " & lblBookingForNameRBS.Text)
+
+        Step12 As TestStep:
+            Description: ="Select Book Now"
+            Value: =Select(btnBookNow)
+
+        Step6 As TestStep:
+            Description: ="Verify the Record was not created in the DB"
+            Value: |-
+                =Assert(IsBlank(LookUp(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email = Lower(gblAppUserDetails.mail) && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID), ID)), "Expected: true, Actual: " & IsBlank(LookUp(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email = Lower(gblAppUserDetails.mail) && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID), ID))) 
+
+        Step8 As TestStep:
+            Description: ="Verify that the Book Now button is disabled"
+            Value: =Assert(btnBookNow.Visible = false)
+
+        Step11 As TestStep:
+            Description: ="Verify a maximum outbound bookings error is shown"
+            Value: |-
+                =Assert(lblBookError.Text = LookUp(
+                colTranslationTable, key = "reviewbooking.error.maxoutbound" && language.Value = gblAppUserLang, text))
+
+        Step3 As TestStep:
+            Description: ="Delete bookings for colleague for today"
+            Value: =RemoveIf(Reservations, ID = TestBooking.ID)
+
+    "'4d5409d2-7ea9-44e1-944e-1cf800e4909b' As TestCase":
+        Description: ="Create a booking for myself and verify its creation"
+        DisplayName: |-
+            ="Case: [Personal Booking] - Create a booking for myself"
+
+        Step1 As TestStep:
+            Description: ="Delete any bookings for myself future booking"
+            Screen: =Review Booking Screen
+            Value: =RemoveIf(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestDate && status.Value = "BOOKED")
+
+        Step8 As TestStep:
+            Description: ="Bypass Search Screen"
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step5 As TestStep:
+            Description: ="Save Reservation Seat"
+            Screen: =Results Screen
+            Value: =Set(TestSelectedSeat, First(galSearchResults.AllItems));
+
+        Step9 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step7 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step6 As TestStep:
+            Description: ="Select Book Now"
+            Screen: =Review Booking Screen
+            Value: =Select(btnBookNow)
+
+        Step4 As TestStep:
+            Description: ="Verify Redirection to Confirmation Page"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(App.ActiveScreen = 'Confirm Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step3 As TestStep:
+            Description: ="Verify the Record was created in the DB"
+            Screen: =Confirm Booking Screen
+            Value: |-
+                =Assert(!IsEmpty(LookUp(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID))), "Expected: true, Actual: " & !IsEmpty(LookUp(Reservations, user_email = Lower(gblAppUserDetails.mail) && proxy_user_email = Blank() && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID))))
+
+        Step2 As TestStep:
+            Description: ="Delete the Booking"
+            Screen: =Confirm Booking Screen
+            Value: =RemoveIf(Reservations, ID = TestBooking.ID)
+
+    "'548ea2b7-f8d2-4692-a0c8-28b0598cc391' As TestCase":
+        Description: ="Search for seats and verify the selected seating type is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Time Range Verification] Time Range carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =My Bookings Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step5 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step6 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step7 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step8 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step9 As TestStep:
+            Description: ="Save Selected Time Range"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedTimeRange, drpTimeRange.Selected)
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText,locDate: TestDate, locTimeRange: drpTimeRange.Selected})
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify the review booking time range is the selected time range"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(lblTimeRangeDetailsRBS.Text = TestSelectedTimeRange.Result, "Expected: " & TestSelectedTimeRange.Result & ", Actual: " & lblTimeRangeDetailsRBS.Text)
+
+    "'03c04fa3-7e4c-48b8-8b47-225e05be8839' As TestCase":
+        Description: ="Search for seats and verify the selected seating type is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Date Verification] Date carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =My Bookings Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step5 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step6 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step7 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step8 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step9 As TestStep:
+            Description: ="Save Selected Date"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedBookingDate, DatePicker.SelectedDate)
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText,locDate: DateAdd(DatePicker.SelectedDate, 30, Days), locTimeRange: drpTimeRange.Selected})
+
+        Step13 As TestStep:
+            Description: ="Update the Selected Date to the value we passed to the results page (so that we are guaranteed bookings)"
+            Value: =Set(TestSelectedBookingDate, DateAdd(DatePicker.SelectedDate, 30, Days))
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify the review booking date is the selected date"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(lblDateDetailsRBS.Text = Text(TestSelectedBookingDate, DateTimeFormat.LongDate), "Expected: " & Text(TestSelectedBookingDate, DateTimeFormat.LongDate) & ", Actual: " & lblDateDetailsRBS.Text)
+
+    "'fdadc005-a4f1-4fb5-8bd4-b4fc8f8c4036' As TestCase":
+        Description: ="Search for seats and verify the selected seating type is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Seating Type Verification] Seating Type carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =My Bookings Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step5 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step6 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step7 As TestStep:
+            Description: ="Save Selected Seating Type"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedSeatType, drpSeatingType.Selected)
+
+        Step8 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step9 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText, locDate: TestDate, locTimeRange: drpTimeRange.Selected})
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify review booking seating type is the selected seating type"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(EndsWith(lblSeatNameRBS.Text,TestSelectedSeatType.Result),"Expected: true, Actual: " & EndsWith(lblSeatNameRBS.Text,TestSelectedSeatType.Result))
+
+    "'a9a50369-13e9-4bbf-a883-be5bdc13eaaf' As TestCase":
+        Description: ="Search for seats and verify the selected neighbourhood is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Neighbourhood Verification] Neighbourhood carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =My Bookings Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step5 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step6 As TestStep:
+            Description: ="Save Selected Neighbourhood"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedNeighbourhood, drpNeighbourhood.Selected)
+
+        Step7 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step8 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step9 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText, locDate: TestDate, locTimeRange: drpTimeRange.Selected})
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify review booking neighbourhood is the selected neighbourhood"
+            Screen: =Review Booking Screen
+            Value: =Assert(lblNeighbourhoodDetailsRBS.Text = TestSelectedNeighbourhood.Result)
+
+    "'f4877304-999b-4167-8619-8faf50fb67d1' As TestCase":
+        Description: ="Search for seats and verify the selected floor is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Floor Verification] Floor carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =My Bookings Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step5 As TestStep:
+            Description: ="Save Selected Floor"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedFloor, drpFloor.Selected)
+
+        Step6 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step7 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step8 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step9 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText, locDate: TestDate, locTimeRange: drpTimeRange.Selected})
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Screen: =Results Screen
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify review booking floor is the selected floor"
+            Screen: =Review Booking Screen
+            Value: =Assert(lblFloorDetailsRBS.Text = TestSelectedFloor.Result)
+
+    "'287a7909-c062-4df5-8504-cf69a030608d' As TestCase":
+        Description: ="Search for seats and verify the selected building is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Building Verification] Building carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =Confirm Booking Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Select a Region"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpRegion.Selected, {Value: First(Filter(colSearch_Regions, ID >= 1)).Result})
+
+        Step3 As TestStep:
+            Description: ="Select a Building"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpBuilding.Selected, {Value: First(Filter(colSearch_Buildings, ID >= 1)).Result})
+
+        Step4 As TestStep:
+            Description: ="Save Selected Building"
+            Screen: =Search Screen
+            Value: =Set(TestSelectedBuilding, drpBuilding.Selected)
+
+        Step5 As TestStep:
+            Description: ="Select a Floor"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpFloor.Selected, {Value: First(Filter(colSearch_Floors, ID >= 1)).Result})
+
+        Step6 As TestStep:
+            Description: ="Select a Neighbourhood"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpNeighbourhood.Selected, {Value: First(Filter(colSearch_Neighbourhoods, ID >= 1)).Result})
+
+        Step7 As TestStep:
+            Description: ="Select a Seating Type"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpSeatingType.Selected, {Value: First(Filter(colSearch_SeatingTypes, ID >= 1)).Result})
+
+        Step8 As TestStep:
+            Description: ="Select a Date"
+            Screen: =Search Screen
+            Value: =SetProperty(DatePicker.SelectedDate, Today())
+
+        Step9 As TestStep:
+            Description: ="Select a Time Range"
+            Screen: =Search Screen
+            Value: |-
+                =SetProperty(drpTimeRange.Selected, {Value: First(Filter(colSearch_TimeRanges, ID >= 1)).Result})
+
+        Step11 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: drpRegion.SelectedText, locBuilding: drpBuilding.SelectedText, locFloor: drpFloor.SelectedText, locNeighbourhood: drpNeighbourhood.SelectedText, locSeatingType: drpSeatingType.SelectedText, locDate: TestDate, locTimeRange: drpTimeRange.Selected})
+
+        Step12 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step10 As TestStep:
+            Description: ="Verify the booking building address is the same as the selected building"
+            Value: |-
+                =Assert(!IsBlank(Find(Switch(gblAppUserLang, "fr", TestSelectedBuilding.building_add_fr, TestSelectedBuilding.building_add_en), lblBuildingDetailsRBS.Text)), "Expected: true, Actual: " & !IsBlank(Find(Switch(gblAppUserLang, "fr", TestSelectedBuilding.building_add_fr, TestSelectedBuilding.building_add_en), lblBuildingDetailsRBS.Text)))
+
+    "'dbaccd97-fc91-40ff-b9b2-42c07b5bf22d' As TestCase":
+        Description: ="Search for seats and verify the selected building is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Desk Verification] Desk carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =Confirm Booking Screen
+            Value: =Navigate('Search Screen')
+
+        Step5 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step2 As TestStep:
+            Description: ="Save Selected Desk"
+            Value: =Set(TestSelectedDesk, First(galSearchResults.AllItems))
+
+        Step4 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step3 As TestStep:
+            Description: ="Verify review booking desk is the selected desk"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(TestSelectedDesk.ID = LookUp(Desks, desk_name_en = First(Split(lblSeatNameRBS.Text, " ")).Result, ID), "Expected Desk ID: " & TestSelectedDesk.ID & ", Actual: " & LookUp(Desks, desk_name_en = lblSeatNameRBS.Text, ID))
+
+    "'8f187fd4-0588-4b07-a3f9-7a3bf409cc88' As TestCase":
+        Description: ="Create a booking for a colleague and verify its creation"
+        DisplayName: |-
+            ="Case: [Outbound Booking] - Create a booking for my colleague"
+
+        Step1 As TestStep:
+            Description: ="Delete bookings made for colleague for future booking"
+            Value: =RemoveIf(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email <> Blank() && start_date = TestDate && status.Value = "BOOKED")
+
+        Step3 As TestStep:
+            Description: ="Bypass Search Screen"
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step4 As TestStep:
+            Description: ="Save the Seat we'll try to reserve"
+            Value: =Set(TestSelectedSeat, First(galSearchResults.AllItems));
+
+        Step5 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step6 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step7 As TestStep:
+            Description: ="Select the Search for Colleague Text Box"
+            Value: =Select(btnSearchBarRBS)
+
+        Step8 As TestStep:
+            Description: ="Verify Redirection to User Search Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Search For User Screen', "Expected: Search For User Screen, Actual: " & App.ActiveScreen.Name)
+
+        Step9 As TestStep:
+            Description: ="Navigate to Review Your Booking with the account we're booking for"
+            Value: |-
+                =Navigate('Review Booking Screen', ScreenTransition.CoverRight, {locSelectedUser: TestAccount})
+
+        Step10 As TestStep:
+            Description: ="Verify Redirection to Review Booking Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Review Booking Screen', "Expected: Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step11 As TestStep:
+            Description: ="Verify the selected user's name and email was attached to the booking card"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(Lower(lblBookingForNameRBS.Text) = Lower(TestAccount.GivenName) & " " & Lower(TestAccount.Surname) & "  (" & Lower(TestAccount.Mail) & ")", "Expected :" & Lower(TestAccount.GivenName) & " " & Lower(TestAccount.Surname) & "  (" & Lower(TestAccount.Mail) & ")" & ", Actual : " & lblBookingForNameRBS.Text)
+
+        Step12 As TestStep:
+            Description: ="Select Book Now"
+            Value: =Select(btnBookNow)
+
+        Step14 As TestStep:
+            Description: ="Verify Redirection to Confirmation Page"
+            Value: |-
+                =Assert(App.ActiveScreen = 'Confirm Booking Screen', "Expected : Review Booking Screen, Actual : " & App.ActiveScreen.Name)
+
+        Step13 As TestStep:
+            Description: ="Verify the Record was created in the DB"
+            Value: |-
+                =Assert(!IsEmpty(LookUp(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email = Lower(gblAppUserDetails.mail) && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID))), "Expected: true, Actual: " & !IsEmpty(LookUp(Reservations, user_email = Lower(TestAccount.Mail) && proxy_user_email = Lower(gblAppUserDetails.mail) && start_date = TestSelectedDate && status.Value = "BOOKED" &&
+                desk_id.Value = Text(TestSelectedSeat.ID) && timeslot_id.Value = Text(TestTimeRange.ID)))) 
+
+        Step2 As TestStep:
+            Description: ="Delete bookings for colleague for today"
+            Value: =RemoveIf(Reservations, ID = TestBooking.ID)
+
+    "'7a35990f-52ff-4b73-8c39-185d1cc00b5e' As TestCase":
+        Description: ="Search for seats and verify the selected building is carried over to the review page"
+        DisplayName: |-
+            ="Case: [Workstation Specifics Verification] Workstation Specifics carried across to the Review Screen"
+
+        Step1 As TestStep:
+            Description: ="Navigate to the Search for Seating Page"
+            Screen: =Confirm Booking Screen
+            Value: =Navigate('Search Screen')
+
+        Step2 As TestStep:
+            Description: ="Bypass Search Screen (so we can choose a date beyond the allowed range - to ensure desks will be available)"
+            Screen: =Search Screen
+            Value: |-
+                =Navigate('Results Screen', ScreenTransition.Cover,
+                { locRegion: TestRegion, locBuilding: TestBuilding, locFloor: TestFloor, locNeighbourhood: TestNeighbourhood, locSeatingType: TestSeatingType, locDate: TestDate, locTimeRange: TestTimeRange })
+
+        Step3 As TestStep:
+            Description: ="Save Selected Desk"
+            Value: =Set(TestSelectedDesk, First(galSearchResults.AllItems))
+
+        Step4 As TestStep:
+            Description: ="Select a Seat (first in the list)"
+            Value: =Select(galSearchResults, 1, crdSeatingRS)
+
+        Step5 As TestStep:
+            Description: ="Verify review booking desk's workstation specifics is the selected desk's workstation specifics"
+            Screen: =Review Booking Screen
+            Value: |-
+                =Assert(lblWorkstationSpecificsRBS.Text = Concat(TestSelectedDesk.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(TestSelectedDesk.workstation_specifics).Value <> tag.Value, ", ")), "Expected Desk ID: " & Concat(TestSelectedDesk.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(TestSelectedDesk.workstation_specifics).Value <> tag.Value, ", ")) & ", Actual: " & lblWorkstationSpecificsRBS.Text)
+

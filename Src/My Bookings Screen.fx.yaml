@@ -1,0 +1,1991 @@
+"'My Bookings Screen' As screen":
+    Fill: =LookUp(Colors, Color = "Background", RGB)
+    OnHidden: =
+    OnVisible: |
+        =//Call Loading animation and set default var values
+        UpdateContext(
+            {
+                locIsLoadingVisible: false,
+                locIsPageLoadingVisible: true,
+                locIsDoneLoadingVisible: false,
+                locStartLoadingTimer: false,
+                locStartDoneTimer: false,
+                locLoadingDuration: gblBaseLoadTime,
+                locIsErrorModalVisible: false
+            }
+        );
+        UpdateContext({locStartLoadingTimer: true});
+        
+        //If the colMyBookingsFilter has no default selected set it to TODAY
+        If(
+            (gblMyBookingsFilter <> "PREVIOUS") && (gblMyBookingsFilter <> "UPCOMING") && (gblMyBookingsFilter <> "CANCELLED"),
+            Set(gblMyBookingsFilter, "UPCOMING")
+        );
+        
+        //Get the selected filter's bookings and update associated desks, buildings, neighbourhoods, and floors table if necessary
+        Select(btnTriggerFilterBookingsMBS);
+
+    shpScreenBackdropMBS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropMBS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    timLoadingMBS As timer:
+        AutoPause: =false
+        Duration: =locLoadingDuration
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsLoadingVisible: false, locStartLoadingTimer:false});
+            UpdateContext({ locStartDoneTimer:true});
+        OnTimerStart: |-
+            =UpdateContext({locIsLoadingVisible: true});
+        Reset: =true
+        Start: =locStartLoadingTimer
+        TabIndex: =-1
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+        Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+        ZIndex: =3
+
+    timDoneLoadingMBS As timer:
+        Duration: =2000
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsDoneLoadingVisible:false, locStartDoneTimer:false});
+        OnTimerStart: |-
+            =UpdateContext({locIsDoneLoadingVisible: true, locIsPageLoadingVisible: false});
+        Reset: =true
+        Start: =locStartDoneTimer
+        TabIndex: =-1
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+        Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+        ZIndex: =5
+
+    "galMyBookingResults As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
+        AccessibleLabel: =LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text)
+        DisplayMode: =If(!IsEmpty(Self.AllItems), DisplayMode.Edit, DisplayMode.Disabled)
+        FocusedBorderColor: =
+        FocusedBorderThickness: =0
+        Height: |-
+            =(cmpNavMBS.Y - (shpFilterBackdrop.Y + shpFilterBackdrop.Height + Min(30 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2),
+                30 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2)
+            )/2 ))
+        Items: |-
+            =SortByColumns(
+                Filter(
+                    colMyBookings_Results,
+                    (gblMyBookingsFilter = "PREVIOUS" && start_date < Today() && start_date >= DateAdd(Today(), -30) && status.Value = "BOOKED") || 
+                    (gblMyBookingsFilter = "UPCOMING" && start_date >= Today() && start_date <= DateAdd(Today(), 7) && status.Value = "BOOKED") ||
+                    (gblMyBookingsFilter = "CANCELLED" && start_date >= DateAdd(Today(), -30) && start_date <= DateAdd(Today(), 7) && status.Value = "CANCELLED") 
+                ),
+                "start_date",
+                Switch(
+                    gblMyBookingsFilter,
+                    "PREVIOUS",
+                    SortOrder.Descending,
+                    "UPCOMING",
+                    SortOrder.Ascending,
+                    "CANCELLED",
+                    SortOrder.Descending
+                )
+            )
+        Layout: =Layout.Vertical
+        OnSelect: |-
+            =Switch(gblMyBookingsFilter, "CANCELLED", false, 
+                Set(gblMyBookings_SelectedBookingID, ThisItem.ID);
+                Navigate('Booking Details Screen', ScreenTransition.Cover)
+            )
+        ShowScrollbar: =!locIsLoadingVisible || IsEmpty(Self.AllItems)
+        TemplatePadding: =0
+        TemplateSize: |-
+            =Min(220 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.35,
+                    ScreenSize.Large, 1.65,  
+                    1.95),
+                220 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.35,
+                    ScreenSize.Large, 1.65,  
+                    1.95)
+            )
+        Transition: =Switch(gblMyBookingsFilter, "CANCELLED", Transition.None, Transition.Pop)
+        Visible: |-
+            =/*!locIsLoadingVisible &&
+            !IsEmpty(Filter(
+                    colMyBookings_Results,
+                    (gblMyBookingsFilter = "PAST" && start_date < Today() && start_date >= DateAdd(Today(), -30)) || 
+                    (gblMyBookingsFilter = "TODAY" && start_date = Today()) || (gblMyBookingsFilter = "UPCOMING" && start_date > Today() && start_date <= DateAdd(Today(), 7))
+                ))*/
+            true
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width/2 - Self.Width/2
+        Y: |-
+            =shpFilterBackdrop.Y + shpFilterBackdrop.Height + 
+            Min(30 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2),
+                30 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25, 
+                    ScreenSize.Large, 1.5,
+                    2)
+            )
+        ZIndex: =7
+
+        crdBookingMBS As button:
+            BorderColor: =
+            BorderThickness: =0
+            DisabledBorderColor: =RGBA(0,0,0,0)
+            DisabledColor: =Self.Color
+            DisabledFill: =Self.Fill
+            DisplayMode: =Switch(ThisItem.status.Value, "CANCELLED", DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(255, 255, 255, 1)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Height: |-
+                =Min(190 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.35,
+                        ScreenSize.Large, 1.65,  
+                        1.95),
+                    190 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.35,
+                        ScreenSize.Large, 1.65,  
+                        1.95)
+                )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: =Select(Parent)
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.HoverColor
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    10 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: =If(Self.DisplayMode.Disabled, -1 , 0)
+            Text: |-
+                =Switch(ThisItem.status.Value, "CANCELLED", 
+                    "",
+                    LookUp(colTranslationTable, key = "mybookings.card.opendetails.aria" && language.Value = gblAppUserLang, text) & ", " &
+                    LookUp(
+                        colTranslationTable,
+                        key = "bookingresults.card.seat" && language.Value = gblAppUserLang,
+                        text
+                    ) & ": " &
+                    LookUp(colMyBookings_Desks, ID = ThisItem.desk_id_value, Switch(gblAppUserLang, "fr", desk_name_fr, desk_name_en)) & ", " &
+                    LookUp(
+                        colTranslationTable,
+                        key = "bookingsearch.date.title" && language.Value = gblAppUserLang,
+                        text
+                    ) & ": " &
+                    lblDateMBS.Text & ", " &
+                    LookUp(
+                        colTranslationTable,
+                        key = "bookingsearch.timerange.title" && language.Value = gblAppUserLang,
+                        text
+                    ) & ": " &
+                    lblTimeRangeMBS.Text
+                )
+            Width: |-
+                =galMyBookingResults.Width
+                - (10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5)) - crdBookingMBS.FocusedBorderThickness*2
+            X: =galSearchResults.Width/2 - Self.Width/2
+            Y: =0 + Max(crdBookingMBS.FocusedBorderThickness * 2, crdBookingMBS.BorderThickness * 2)
+            ZIndex: =1
+
+        cntrBookingDetails As groupContainer.verticalAutoLayoutContainer:
+            Height: =crdBookingMBS.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2),
+                    10 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+                )
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: |-
+                =15 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+            PaddingTop: |-
+                =15 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+            Width: =(crdBookingMBS.X + crdBookingMBS.Width) - Self.X * 2
+            X: |-
+                =crdBookingMBS.X + 
+                20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+            Y: =crdBookingMBS.Y + crdBookingMBS.Height/2 - Self.Height/2
+            ZIndex: =12
+
+            lblBookingAssociationsMBS As label:
+                AutoHeight: =true
+                Color: =If(ThisItem.status.Value = "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                Font: =Font.Lato
+                FontWeight: =FontWeight.Semibold
+                Height: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                OnSelect: =Select(crdBookingMBS)
+                PaddingBottom: =1
+                PaddingLeft: =1
+                PaddingRight: |-
+                    =Min(20 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2),
+                        20 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            2)
+                    )
+                PaddingTop: =1
+                Size: |
+                    =Min(12 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.35,
+                            ScreenSize.Large, 1.65,  
+                            1.9),
+                        12 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.35,
+                            ScreenSize.Large, 1.65,  
+                            1.9)
+                    )
+                Text: |-
+                    =With(LookUp(colMyBookings_Results, ID = ThisItem.ID),
+                        If(!IsBlank(ThisRecord.booking_for_by_en),
+                            Switch(gblAppUserLang, "fr", ThisRecord.booking_for_by_fr, ThisRecord.booking_for_by_en) & " " & 
+                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                If(ThisRecord.user_email = Lower(gblAppUserDetails.mail),
+                                    //Booking is for active user and was booked by someone else
+                                    ThisRecord.booking_by.GivenName & " " & ThisRecord.booking_by.Surname & Char(10) & "(" & Lower(ThisRecord.booking_by.Mail) & ")",
+                                    
+                                    If(ThisRecord.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                        //Booking is for someone else, booked by active user
+                                        ThisRecord.booking_for.GivenName & " " & ThisRecord.booking_for.Surname & Char(10) & "(" & Lower(ThisRecord.booking_for.Mail) & ")",
+                                        ""
+                                    )
+                                )
+                            )
+                        )
+                    )
+                Visible: =!IsBlank(Self.Text)
+                Width: =lblBookingStatusMBS.X - Self.X
+                Wrap: =false
+                X: |-
+                    =crdBookingMBS.X + 
+                    20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            2)
+                ZIndex: =1
+
+            cntrLocationDetails As groupContainer.verticalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =Self.LayoutMinHeight + (2 * Self.LayoutGap)
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: |-
+                    =Min(5 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2),
+                        5 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.25,  
+                            ScreenSize.Large, 1.5,
+                            2)
+                    )
+                LayoutMinHeight: |-
+                    =lblSeatNameMBS.Height +
+                    lblWorkstationSpecificsMBS.Height +
+                    lblBuildingDetailsMBS.Height
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =cntrBookingDetails.Width
+                ZIndex: =3
+
+                lblSeatNameMBS As label:
+                    AutoHeight: =true
+                    Color: =Switch(ThisItem.status.Value, "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                    DisabledColor: =Self.Color
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Role: =TextRole.Heading4
+                    Size: |-
+                        =Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                            )
+                    Text: |
+                        =//Get Seat Number
+                        LookUp(colMyBookings_Desks, ID = ThisItem.desk_id_value, desk_name_en) & ", " & 
+                        //Get Seating Type
+                        LookUp(colSeatingTypeTable, ID = LookUp(colMyBookings_Desks, ID = ThisItem.desk_id_value, seating_type_id).Id, Switch(gblAppUserLang, "fr", seating_type_name_fr, seating_type_name_en))
+                    Width: =cntrLocationDetails.Width
+                    X: |-
+                        =crdBookingMBS.X + 20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                    Y: |-
+                        =lblBookingAssociationsMBS.Y + lblBookingAssociationsMBS.Height +
+                        Min(15 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2),
+                            15 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    ZIndex: =1
+
+                lblWorkstationSpecificsMBS As label:
+                    AutoHeight: =true
+                    Color: =If(ThisItem.status.Value = "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                    DisabledColor: =Self.Color
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    LineHeight: =1
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Size: |-
+                        =Min(14 * Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            14 * Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: |-
+                        =With(LookUp(colMyBookings_Desks, ID = ThisItem.desk_id.Id) As booked_desk,
+                                    Concat(booked_desk.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(booked_desk.workstation_specifics).Value <> tag.Value, ", "))
+                        )
+                    Visible: =!IsBlank(Self.Text)
+                    Width: =cntrLocationDetails.Width
+                    X: |-
+                        =crdBookingMBS.X + 20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                    Y: |-
+                        =lblSeatNameMBS.Y + lblSeatNameMBS.Height + 
+                        Min(5 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2),
+                            5 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    ZIndex: =2
+
+                lblBuildingDetailsMBS As label:
+                    AutoHeight: =true
+                    Color: =If(ThisItem.status.Value = "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                    DisabledColor: =Self.Color
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    LineHeight: =1
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Size: |-
+                        =Min(14 * Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            14 * Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    Text: |-
+                        =//Get Floor Number from local results
+                        LookUp(colMyBookings_Floors, ID = LookUp(colMyBookings_Neighbourhoods, ID = LookUp(colMyBookings_Desks, ID = ThisItem.desk_id.Id, neighbourhood_id.Id), floor_id.Id),  Switch( gblAppUserLang, "fr", floor_name_fr, floor_name_en )) & ", " &
+                        //Get Building ADDR and Building Name from local results
+                         LookUp(
+                            colMyBookings_Buildings,
+                            ID = LookUp(
+                                colMyBookings_Desks,
+                                ID = ThisItem.desk_id.Id,
+                                building_id
+                            ).Id,
+                            Switch(
+                                gblAppUserLang,
+                                "fr",
+                                building_add_fr & " " & building_name_fr,
+                                building_add_en & " " & building_name_en
+                            )
+                        )
+                    Width: =cntrLocationDetails.Width
+                    X: |-
+                        =crdBookingMBS.X + 20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                    Y: |-
+                        =If(!IsBlank(lblWorkstationSpecificsMBS.Text),
+                        lblWorkstationSpecificsMBS.Y + lblWorkstationSpecificsMBS.Height,
+                        lblSeatNameMBS.Y + lblSeatNameMBS.Height) + 
+                        Min(5 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2),
+                            5 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    ZIndex: =3
+
+            cntrDateDetails As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =Max(icoDateMBS.Height, lblDateMBS.Height, icoTimeRangeMBS.Height, lblTimeRangeMBS.Height)
+                LayoutMinHeight: =Max(cntrCalendarDetails.Height, cntrTimeRangeDetails.Height)
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =cntrBookingDetails.Width
+                ZIndex: =4
+
+                cntrCalendarDetails As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    Height: =Max(icoDateMBS.Height, lblDateMBS.Height)
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2),
+                            15 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    LayoutMinHeight: =Max(icoDateMBS.Height, lblDateMBS.Height)
+                    LayoutMinWidth: =icoDateMBS.Width + Self.LayoutGap + lblDateMBS.Width
+                    LayoutMode: =LayoutMode.Auto
+                    Width: =icoDateMBS.Width + Self.LayoutGap + lblDateMBS.Width
+                    X: =80
+                    ZIndex: =1
+
+                    icoDateMBS As image:
+                        Height: =Self.Width
+                        Image: =If(ThisItem.status.Value = "CANCELLED", 'calendar (grey)', 'calendar (purple)')
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Width: |-
+                            =Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2),
+                                18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2)
+                            )
+                        X: |-
+                            =crdBookingMBS.X + 20 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,  
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        Y: |-
+                            =crdBookingMBS.Y + crdBookingMBS.Height - Self.Height - 15 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,  
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ZIndex: =1
+
+                    lblDateMBS As label:
+                        AutoHeight: =true
+                        Color: =If(ThisItem.status.Value = "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                        Font: =Font.Lato
+                        Height: =0
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        PaddingBottom: =1
+                        PaddingLeft: =1
+                        PaddingRight: =1
+                        PaddingTop: =1
+                        Size: |-
+                            =Min(12 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.35,
+                                    ScreenSize.Large, 1.65,  
+                                    1.9),
+                                12 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.35,
+                                    ScreenSize.Large, 1.65,  
+                                    1.9)
+                            )
+                        Text: |-
+                            =Proper(Switch(gblAppUserLang, "fr", 
+                                Text(ThisItem.start_date,
+                                "[$-en-US]dddd d, mmmm, yyyy",
+                                "fr-FR"),     
+                                
+                                Text(ThisItem.start_date,
+                                "[$-en-US]dddd, mmmm d, yyyy",
+                                "en-CA"
+                                )))
+                        Width: =Self.Size * Len(Self.Text) * 0.75
+                        X: |-
+                            =icoDateMBS.X + icoDateMBS.Width + 10 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25, 
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        Y: =icoDateMBS.Y + icoDateMBS.Height/2 - lblDateMBS.Height/2
+                        ZIndex: =2
+
+                cntrTimeRangeDetails As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    Height: =Max(icoTimeRangeMBS.Height, lblTimeRangeMBS.Height)
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2),
+                            15 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,  
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    LayoutMinHeight: =Max(icoTimeRangeMBS.Height, lblTimeRangeMBS.Height)
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    X: =80
+                    ZIndex: =2
+
+                    icoTimeRangeMBS As image:
+                        Height: =Self.Width
+                        Image: =If(ThisItem.status.Value = "CANCELLED", 'clock (grey)', 'clock (purple)')
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Width: |-
+                            =Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2),
+                                18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,  
+                                    2)
+                            )
+                        X: |-
+                            =//crdBookingMBS.X + crdBookingMBS.Width/2 - (Self.Width/2 + lblTimeRangeMBS.Width/2)
+                            lblDateMBS.X + lblDateMBS.Width + 5 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,  
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        Y: |-
+                            =crdBookingMBS.Y + crdBookingMBS.Height - Self.Height - 15 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25,  
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ZIndex: =1
+
+                    lblTimeRangeMBS As label:
+                        AutoHeight: =true
+                        Color: =If(ThisItem.status.Value = "CANCELLED", LookUp(Colors, Color = "Grey", RGB), LookUp(Colors, Color = "Primary", RGB))
+                        Font: =Font.Lato
+                        Height: =0
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        PaddingBottom: =1
+                        PaddingLeft: =1
+                        PaddingRight: =1
+                        PaddingTop: =1
+                        Size: |-
+                            =Min(12 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.35,
+                                    ScreenSize.Large, 1.65,  
+                                    1.9),
+                                12 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.35,
+                                    ScreenSize.Large, 1.65,  
+                                    1.9)
+                            )
+                        Text: =LookUp(colTimeslots, ID = ThisItem.timeslot_id.Id, Switch(gblAppUserLang, "fr", time_range_fr, time_range_en))
+                        Width: =Self.Size * Len(Self.Text) 
+                        X: |-
+                            =icoTimeRangeMBS.X + icoTimeRangeMBS.Width + 10 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.25, 
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        Y: =icoTimeRangeMBS.Y + icoTimeRangeMBS.Height/2 - lblTimeRangeMBS.Height/2
+                        ZIndex: =2
+
+        lblBookingStatusMBS As label:
+            Align: =Align.Right
+            AutoHeight: =true
+            Color: =Switch(ThisItem.status.Value, "BOOKED", LookUp(Colors, Color = "Dark Green", RGB), "CANCELLED", LookUp(Colors, Color = "Grey", RGB))
+            DisabledColor: =Self.Color
+            Font: =Font.Lato
+            Height: =
+            LineHeight: =1
+            PaddingBottom: =1
+            PaddingLeft: =1
+            PaddingRight: =1
+            PaddingTop: =1
+            Size: |-
+                =Min(14 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    14 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            Text: |-
+                =Switch(gblMyBookingsFilter, 
+                    "UPCOMING",
+                    LookUp(
+                        colTranslationTable,
+                        key = "mybookings.card.status.booked" && language.Value = gblAppUserLang,
+                        text
+                    ),
+                    ""
+                )
+            Visible: |-
+                =//If the filter is UPCOMING make the status visible, otherwise for PAST and CANCELLED bookings do not display the status
+                Switch(gblMyBookingsFilter, "UPCOMING", true, false)
+            Width: =Self.Size * Len(Self.Text)
+            X: |-
+                =imgBookingStatusMBS.X - Self.Width - 10 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+            Y: =imgBookingStatusMBS.Y + imgBookingStatusMBS.Height/2 - Self.Height/2
+            ZIndex: =13
+
+        imgBookingStatusMBS As image:
+            Height: =Self.Width
+            Image: =Switch(ThisItem.status.Value, "BOOKED", checkmark, "CANCELLED", 'cancel (grey)')
+            PaddingBottom: =1
+            PaddingLeft: =1
+            PaddingRight: =1
+            PaddingTop: =1
+            Visible: |-
+                =//If the filter is UPCOMING make the status visible, otherwise for PAST and CANCELLED bookings do not display the status
+                Switch(gblMyBookingsFilter, "UPCOMING", true, false)
+            Width: |-
+                =Min(35 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    35 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            X: |-
+                =crdBookingMBS.X + crdBookingMBS.Width - Self.Width - 15 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        ScreenSize.Large, 1.5,
+                        2)
+            Y: |-
+                =crdBookingMBS.Y + 
+                Min(30 *  Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        1.5),
+                    30 *  Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,  
+                        1.5)
+                 ) /2
+            ZIndex: =14
+
+        shpSelectionArea As rectangle:
+            Fill: =RGBA(0, 0, 0, 0)
+            Height: =cntrBookingDetails.Height
+            OnSelect: =Select(crdBookingMBS)
+            Width: =cntrBookingDetails.Width
+            X: =cntrBookingDetails.X
+            Y: =cntrBookingDetails.Y
+            ZIndex: =15
+
+    lblBookingResultsHeadingMBS As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading3
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "mybookings.list" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropMBS.X
+        Y: =cmpHeaderMBS.Y + cmpHeaderMBS.Height + shpFilterBackdrop.Height
+        ZIndex: =12
+
+    grpLoadingPageMBS As group:
+        Height: =5
+        Width: =5
+        X: =39
+        Y: =299
+        ZIndex: =12
+
+        crdLoadingPageMBS As button:
+            BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: |-
+                =cmpNavMBS.Y - (cmpHeaderMBS.Y + cmpHeaderMBS.Height +
+                Min(30 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    30 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )/2)
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: |-
+                =Min(15 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    15 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: =-1
+            Text: =
+            Visible: =locIsPageLoadingVisible
+            Width: |-
+                =shpPageBackdropMBS.Width
+                - (10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5)) + crdBookingMBS.BorderThickness
+            X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width/2 - Self.Width/2
+            Y: |-
+                =cmpHeaderMBS.Y + cmpHeaderMBS.Height + 
+                Min(30 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    30 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            ZIndex: =13
+
+        imgLoadingPageMBS As image:
+            DisplayMode: =DisplayMode.View
+            Height: =Self.Width
+            Image: =loading_spinner
+            Visible: =locIsPageLoadingVisible
+            Width: =Min(crdLoadingPageMBS.Width/2, crdLoadingPageMBS.Height/3)
+            X: =crdLoadingPageMBS.X + crdLoadingPageMBS.Width/2 - Self.Width/2
+            Y: =crdLoadingPageMBS.Y + crdLoadingPageMBS.Height/2 - Self.Height/2
+            ZIndex: =14
+
+    cmpNavMBS As cmp_MainNav:
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                10 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        Height: |-
+            =Min(86 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                86 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        MutedColor: =LookUp(Colors, Color = "Grey", RGB)
+        NavigateToText: =LookUp(colTranslationTable, key = "nav.navigate" && language.Value = gblAppUserLang, text)
+        NavItems: |-
+            =Table(
+                {
+                    Key: "profile",
+                    Label: gblAppUserDetails.givenName,
+                    NavigationLink: 'My Profile Screen'
+                },
+                {
+                    Key: "newBooking",
+                    Label: LookUp(colTranslationTable, key = "nav.book" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'Search Screen'
+                },
+                {
+                    Key: "bookings",
+                    Label: LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'My Bookings Screen'
+                }
+            )
+        ScreenSize_Height: =cmpScreenFunctionsMBS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingMBS.Text)
+        SelectedItem: ="bookings"
+        Visible: =true
+        Width: |-
+            =If(
+            Parent.Size <> ScreenSize.ExtraLarge,
+            App.Width-4,
+            (App.DesignWidth*2)-4
+            )
+        X: =(Parent.Width-Self.Width) /2
+        Y: =App.Height-Self.Height
+        ZIndex: =15
+
+    btnTriggerFilterBookingsMBS As button:
+        BorderThickness: =0
+        Height: =0
+        OnSelect: |
+            =//Refresh the datasource
+            IfError(
+                Refresh(Reservations),
+            
+                //If there's an error show the component (error modal)
+                UpdateContext({locIsErrorModalVisible: true});
+                
+                //If there's an error also try to patch the error details to the Sharepoint Error list
+                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                {   user_email: Lower(gblAppUserDetails.mail), 
+                    error_code: First(Errors(Reservations)).Error,
+                    error_message: First(Errors(Reservations)).Message, 
+                    error_log: "Refresh(Reservations)",
+                    error_origin: App.ActiveScreen 
+                }),
+                false
+            );
+            
+            //Given the selected filter get potentially updated bookings/new bookings
+            IfError(
+                ClearCollect(colMyBookings_RawResults,
+                    Filter(
+                        Reservations,
+                        user_email = Lower(gblAppUserDetails.mail) || proxy_user_email = Lower(gblAppUserDetails.mail),
+                        (gblMyBookingsFilter = "PREVIOUS" && start_date < Today() && start_date >= DateAdd(Today(), -30) && status.Value = "BOOKED") || 
+                        (gblMyBookingsFilter = "UPCOMING" && start_date >= Today() && start_date <= DateAdd(Today(), 7) && status.Value = "BOOKED") ||
+                        (gblMyBookingsFilter = "CANCELLED" && start_date >= DateAdd(Today(), -30) && start_date <= DateAdd(Today(), 7) && status.Value = "CANCELLED") 
+                    )
+                ),
+                //If there's an error show the component (error modal)
+                UpdateContext({locIsErrorModalVisible: true});
+                
+                //If there's an error also try to patch the error details to the Sharepoint Error list
+                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                {   user_email: Lower(gblAppUserDetails.mail), 
+                    error_code: First(Errors(Reservations)).Error,
+                    error_message: First(Errors(Reservations)).Message, 
+                    error_log: "Filter(Reservations ...)",
+                    error_origin: App.ActiveScreen 
+                }),
+                Table()
+            );
+            
+            //If there are NEW bookings in the selected filter range add it to the local collection
+            If(!IsEmpty(Filter(Distinct(colMyBookings_RawResults, ID), Not(Result in colMyBookings_Results.ID))),
+                ForAll(Filter(colMyBookings_RawResults, ID in Filter(Distinct(colMyBookings_RawResults, ID), Not(Result in colMyBookings_Results.ID))) As newBooking,
+                    Collect(colMyBookings_Results, 
+                        newBooking
+                    );
+                    With(
+                        Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = newBooking.ID),
+                            { 
+                                desk_id_value: Value(newBooking.desk_id.Value),
+                                booking_for: If(!IsBlank(newBooking.user_email) && !IsBlank(newBooking.proxy_user_email),
+                                                //If there's a non-blank user_email and a non-blank proxy_user_email the booking is for the user_email
+                                                LookUp(Office365Users.SearchUserV2({searchTerm: newBooking.user_email}).value, Lower(ThisRecord.Mail) = Lower(newBooking.user_email)),
+                                                Blank()
+                                                ),
+                                booking_by: If(!IsBlank(newBooking.user_email) && !IsBlank(newBooking.proxy_user_email),
+                                                //If there's a non-blank user_email and a non-blank proxy_user_email the booking is by the proxy_user_email   
+                                                LookUp(Office365Users.SearchUserV2({searchTerm: newBooking.proxy_user_email}).value, Lower(ThisRecord.Mail) =                                                              Lower(newBooking.proxy_user_email)),
+            
+                                                
+                                                If(!IsBlank(newBooking.user_email) && IsBlank(newBooking.proxy_user_email),
+                                                    //If there's a non-blank user_email and a blank proxy_user_email the booking is by the user_email
+                                                    LookUp(Office365Users.SearchUserV2({searchTerm: newBooking.user_email}).value, Lower(ThisRecord.Mail) =                                                                    Lower(newBooking.user_email)),
+                                                    Blank()
+                                                )
+                                            )
+                            }
+                        ),
+            
+                        Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = newBooking.ID),
+                            {
+                                booking_for_by_en:
+                                    If(!IsBlank(newBooking.user_email) && !IsBlank(newBooking.proxy_user_email),
+                                        If(newBooking.user_email = Lower(gblAppUserDetails.mail),
+                                            //Booking is for active user and was booked by someone else
+                                            LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = "en", text),
+                                            
+                                            If(newBooking.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                                //Booking is for someone else, booked by active user
+                                                LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = "en", text)
+                                            )
+                                        )
+                                    ),
+                                booking_for_by_fr:
+                                    If(!IsBlank(newBooking.user_email) && !IsBlank(newBooking.proxy_user_email),
+                                        If(newBooking.user_email = Lower(gblAppUserDetails.mail),
+                                            //Booking is for active user and was booked by someone else
+                                            LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = "fr", text),
+                                            
+                                            If(newBooking.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                                //Booking is for someone else, booked by active user
+                                                LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = "fr", text)
+                                            )
+                                        )
+                                    )
+                            }
+                        )
+                    )
+                )
+            );
+            
+            //Look at the most up to date bookings within the selected filter range and potentially update our local collection
+            ForAll(colMyBookings_RawResults As rawResult,
+                //If the database has a more up to date booking replace ours with the db's
+                If(rawResult.Modified > LookUp(colMyBookings_Results, ID = rawResult.ID).Modified,
+                    With(LookUp(colMyBookings_Results, ID = rawResult.ID),
+                        //If the users attached to the booking were updated we must find their profile's and store them in the results
+                        If(ThisRecord.user_email <> rawResult.user_email || ThisRecord.proxy_user_email <> rawResult.proxy_user_email,
+                            With(
+                                Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = rawResult.ID),
+                                    { 
+                                        booking_for: If(!IsBlank(rawResult.user_email) && !IsBlank(rawResult.proxy_user_email),
+                                                        //If there's a non-blank user_email and a non-blank proxy_user_email the booking is for the user_email   
+                                                        LookUp(Office365Users.SearchUserV2({searchTerm: rawResult.user_email}).value, Lower(ThisRecord.Mail) =                                                                     Lower(rawResult.user_email)),
+                                                        Blank()
+                                                        ),
+                                        booking_by: If(!IsBlank(rawResult.user_email) && !IsBlank(rawResult.proxy_user_email),
+                                                        //If there's a non-blank user_email and a non-blank proxy_user_email the booking is by the proxy_user_email   
+                                                        LookUp(Office365Users.SearchUserV2({searchTerm: rawResult.proxy_user_email}).value, Lower(ThisRecord.Mail) =                                                               Lower(rawResult.proxy_user_email)),
+                                                        
+                                                        If(!IsBlank(rawResult.user_email) && IsBlank(rawResult.proxy_user_email),
+                                                            //If there's a non-blank user_email and a blank proxy_user_email the booking is by the user_email
+                                                            LookUp(Office365Users.SearchUserV2({searchTerm: rawResult.user_email}).value, Lower(ThisRecord.Mail) =                                                                     Lower(rawResult.user_email)),
+                                                            Blank()
+                                                        )
+                                                    )
+                                    }
+                                ),
+            
+                                Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = rawResult.ID),
+                                    {
+                                        booking_for_by_result:
+                                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                                If(ThisRecord.user_email = Lower(gblAppUserDetails.mail),
+                                                    //Booking is for active user and was booked by someone else
+                                                    ThisRecord.booking_by.GivenName & " " & ThisRecord.booking_by.Surname & " (" & Lower(ThisRecord.booking_by.Mail) & ")",
+                                                    
+                                                    If(ThisRecord.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                                        //Booking is for someone else, booked by active user
+                                                        ThisRecord.booking_for.GivenName & " " & ThisRecord.booking_for.Surname & " (" & Lower(ThisRecord.booking_for.Mail) & ")",
+                                                        ""
+                                                    )
+                                                )
+                                            ),
+            
+                                        booking_for_by_en:
+                                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                                If(ThisRecord.user_email = Lower(gblAppUserDetails.mail),
+                                                    //Booking is for active user and was booked by someone else
+                                                    LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = "en", text),
+                                                    
+                                                    If(ThisRecord.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                                        //Booking is for someone else, booked by active user
+                                                        LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = "en", text)
+                                                    )
+                                                )
+                                            ),
+                                        booking_for_by_fr:
+                                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                                If(ThisRecord.user_email = Lower(gblAppUserDetails.mail),
+                                                    //Booking is for active user and was booked by someone else
+                                                    LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = "fr", text),
+                                                    
+                                                    If(ThisRecord.proxy_user_email = Lower(gblAppUserDetails.mail),
+                                                        //Booking is for someone else, booked by active user
+                                                        LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = "fr", text)
+                                                    )
+                                                )
+                                            )
+                                    }
+                                )
+                            )
+                        )
+                    );
+                    //Whether or not the user's have been updated, update the rest of the booking too
+                    Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = rawResult.ID), rawResult)
+                )
+            );
+            
+            //Check if our local collection has expired records (ones that aren't in the db) and delete them
+            ForAll(Filter(Distinct(Filter(colMyBookings_Results, 
+                            (gblMyBookingsFilter = "PREVIOUS" && start_date < Today() && start_date >= DateAdd(Today(), -30) && status.Value = "BOOKED") || 
+                            (gblMyBookingsFilter = "UPCOMING" && start_date >= Today() && start_date <= DateAdd(Today(), 7) && status.Value = "BOOKED") ||
+                            (gblMyBookingsFilter = "CANCELLED" && start_date >= DateAdd(Today(), -30) && start_date <= DateAdd(Today(), 7) && status.Value = "CANCELLED")),
+                            ID), 
+                        Not(Result in colMyBookings_RawResults.ID)) 
+                    As recToDel,
+                    RemoveIf(colMyBookings_Results, ID = recToDel.Result)
+            );
+            
+            IfError(
+                //Also check if there are any new Buildings, Neigbourhoods, Floors, Desks that we need to add to our local collections
+                If(!IsEmpty(Filter(Distinct(colMyBookings_Results, desk_id_value), Not(Result in colMyBookings_Desks.ID))),
+                    ForAll(AddColumns(Filter(Distinct(colMyBookings_Results, desk_id_value), Not(Result in colMyBookings_Desks.ID)), "desk_id_value", Result) As desk_to_find,
+                        Collect(colMyBookings_DesksRaw, LookUp(AddColumns(AddColumns(Desks, "building_id_value", building_id.Id),"neighbourhood_id_value", neighbourhood_id.Id), ID = desk_to_find.desk_id_value))
+                    )
+                ),
+                //If there's an error show the component (error modal)
+                UpdateContext({locIsErrorModalVisible: true});
+                
+                //If there's an error also try to patch the error details to the Sharepoint Error list
+                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                {   user_email: Lower(gblAppUserDetails.mail), 
+                    error_code: First(Errors(Desks)).Error,
+                    error_message: First(Errors(Desks)).Message, 
+                    error_log: "LookUp(AddColumns(AddColumns(Desks, 'building_id_value', building_id.Id ...)))",
+                    error_origin: App.ActiveScreen 
+                }),
+                Table()
+            );
+            
+            If(!IsEmpty(colMyBookings_DesksRaw),
+                IfError(
+                    ForAll(Filter(colMyBookings_DesksRaw, Not(building_id_value in colMyBookings_Buildings.ID)) As building_to_find, 
+                        Collect(colMyBookings_BuildingsRaw, LookUp(Buildings, ID = building_to_find.building_id_value))
+                    ),
+                    //If there's an error show the component (error modal)
+                    UpdateContext({locIsErrorModalVisible: true});
+                    
+                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                    {   user_email: Lower(gblAppUserDetails.mail), 
+                        error_code: First(Errors(Buildings)).Error,
+                        error_message: First(Errors(Buildings)).Message, 
+                        error_log: "LookUp(Buildings, ID = building_to_find.building_id_value)",
+                        error_origin: App.ActiveScreen 
+                    }),
+                    Table()
+                );
+                IfError(
+                    ForAll(Filter(Distinct(colMyBookings_DesksRaw, neighbourhood_id_value), Not(Result in colMyBookings_Neighbourhoods.ID)) As neighbourhood_to_find, 
+                        Collect(colMyBookings_NeighbourhoodsRaw, LookUp(AddColumns(Neighbourhoods, "floor_id_value", floor_id.Id), ID = neighbourhood_to_find.Result))
+                    ),
+                    //If there's an error show the component (error modal)
+                    UpdateContext({locIsErrorModalVisible: true});
+                    
+                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                    {   user_email: Lower(gblAppUserDetails.mail), 
+                        error_code: First(Errors(Neighbourhoods)).Error,
+                        error_message: First(Errors(Neighbourhoods)).Message, 
+                        error_log: "LookUp(AddColumns(Neighbourhoods, 'floor_id_value', floor_id.Id) ...)",
+                        error_origin: App.ActiveScreen 
+                    }),
+                    Table()
+                )
+            
+            );
+            IfError(
+                If(!IsEmpty(colMyBookings_NeighbourhoodsRaw),
+                    ForAll(Filter(Distinct(colMyBookings_NeighbourhoodsRaw, floor_id_value), Not(Result in colMyBookings_Floors.ID)) As floor_to_find, 
+                        Collect(colMyBookings_FloorsRaw, LookUp(Floors, ID = floor_to_find.Result))
+                    )
+                ),
+                //If there's an error show the component (error modal)
+                UpdateContext({locIsErrorModalVisible: true});
+                
+                //If there's an error also try to patch the error details to the Sharepoint Error list
+                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                {   user_email: Lower(gblAppUserDetails.mail), 
+                    error_code: First(Errors(Floors)).Error,
+                    error_message: First(Errors(Floors)).Message, 
+                    error_log: "LookUp(Floors, ID = floor_to_find.Result)",
+                    error_origin: App.ActiveScreen 
+                }),
+                false
+            );
+            
+            //Add the non already existent desks, buildings, neighbourhoods, and floors to our existing respective MyBooking tables
+            Concurrent(
+                ForAll(colMyBookings_DesksRaw As desk_to_add, 
+                    Collect(colMyBookings_Desks, desk_to_add)
+                ),
+                ForAll(colMyBookings_BuildingsRaw As building_to_add, 
+                    Collect(colMyBookings_Buildings, building_to_add)
+                ),
+                ForAll(colMyBookings_NeighbourhoodsRaw As neighbourhoods_to_add, 
+                    Collect(colMyBookings_Neighbourhoods, neighbourhoods_to_add)
+                ),
+                ForAll(colMyBookings_FloorsRaw As floors_to_add, 
+                    Collect(colMyBookings_Floors, floors_to_add)
+                )
+            );
+            
+            //Empty out the fresh data
+            Concurrent(
+                Clear(colMyBookings_DesksRaw),
+                Clear(colMyBookings_BuildingsRaw),
+                Clear(colMyBookings_NeighbourhoodsRaw),
+                Clear(colMyBookings_FloorsRaw),
+                Reset(galMyBookingResults)
+            );
+            
+            
+            //Stop the timer
+            UpdateContext({locLoadingDuration: 0});
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        RadiusBottomLeft: =0
+        RadiusBottomRight: =0
+        RadiusTopLeft: =0
+        RadiusTopRight: =0
+        Size: =0
+        TabIndex: =-1
+        Text: =
+        Visible: =false
+        Width: =0
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+        Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+        ZIndex: =16
+
+    shpFilterBackdrop As rectangle:
+        Fill: =Color.White
+        Height: |
+            =Min(100 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125, 
+                    ScreenSize.Large, 1.25,
+                    1.5),
+                 100 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.125, 
+                    ScreenSize.Large, 1.25,
+                    1.5)   
+            )
+        Visible: =!locIsPageLoadingVisible
+        Width: =cmpHeaderMBS.Width
+        X: =cmpHeaderMBS.X
+        Y: =cmpHeaderMBS.Y + cmpHeaderMBS.Height
+        ZIndex: =17
+
+    cntrFilterBookingsMBS As groupContainer:
+        Height: =btnFilterBookings_Previous.Height + btnFilterBookings_Previous.FocusedBorderThickness
+        Visible: =!locIsPageLoadingVisible
+        Width: |-
+            =cmpHeaderMBS.Width
+            - (10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)) +
+            btnFilterBookings_Previous.FocusedBorderThickness +
+            btnFilterBookings_Upcoming.FocusedBorderThickness 
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width/2 - Self.Width/2
+        Y: =shpFilterBackdrop.Y + shpFilterBackdrop.Height/2 - Self.Height/2
+        ZIndex: =18
+
+        btnFilterBookings_Cancelled As button:
+            BorderThickness: =0
+            Color: =Switch(gblMyBookingsFilter, "CANCELLED", Color.White, LookUp(Colors, Color = "Primary", RGB))
+            Fill: =Switch(gblMyBookingsFilter, "CANCELLED", LookUp(Colors, Color = "Primary", RGB), LookUp(Colors, Color = "Background", RGB))
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Font: =Font.'Lato Black'
+            Height: =btnFilterBookings_Previous.Height
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: |-
+                =If(
+                    gblMyBookingsFilter = "CANCELLED",
+                    ColorFade(
+                    LookUp(
+                        Colors,
+                        Color = "Primary",
+                        RGB
+                    ), 20%),
+                    RGBA(0, 0, 0, 0.20)
+                )
+            OnSelect: |-
+                =//If filter wasn't set to "CANCELLED" before update it and trigger booking data refresh, otherwise if it was already selected ignore (don't refresh data)
+                //Call Loading animation and set default var values
+                If(gblMyBookingsFilter <> "CANCELLED", 
+                    Set(gblMyBookingsFilter, "CANCELLED"); 
+                    Select(btnTriggerFilterBookingsMBS);
+                    UpdateContext(
+                        {
+                            locIsLoadingVisible: false,
+                            locIsPageLoadingVisible: true,
+                            locIsDoneLoadingVisible: false,
+                            locStartLoadingTimer: false,
+                            locStartDoneTimer: false,
+                            locLoadingDuration: gblBaseLoadTime
+                        }
+                    );
+                    UpdateContext({locStartLoadingTimer: true});
+                );
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.HoverColor
+            PressedFill: =Self.HoverFill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: =btnFilterBookings_Previous.RadiusTopLeft
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =btnFilterBookings_Previous.Size
+            Text: =LookUp(colTranslationTable, key = "mybookings.card.status.cancelled" && language.Value = gblAppUserLang, text)
+            Width: =btnFilterBookings_Previous.Width
+            X: =cntrFilterBookingsMBS.Width-Self.Width-Self.FocusedBorderThickness
+            Y: =cntrFilterBookingsMBS.Height/2 - Self.Height/2
+            ZIndex: =1
+
+        btnFilterBookings_Upcoming As button:
+            BorderThickness: =0
+            Color: =Switch(gblMyBookingsFilter, "UPCOMING", Color.White, LookUp(Colors, Color = "Primary", RGB))
+            Fill: =Switch(gblMyBookingsFilter, "UPCOMING", LookUp(Colors, Color = "Primary", RGB), LookUp(Colors, Color = "Background", RGB))
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Font: =Font.'Lato Black'
+            Height: =btnFilterBookings_Previous.Height
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: |-
+                =If(
+                    gblMyBookingsFilter = "UPCOMING",
+                    ColorFade(
+                    LookUp(
+                        Colors,
+                        Color = "Primary",
+                        RGB
+                    ), 20%),
+                    RGBA(0, 0, 0, 0.20)
+                )
+            OnSelect: |-
+                =//If filter wasn't set to "UPCOMING" before update it and trigger booking data refresh, otherwise if it was already selected ignore (don't refresh data)
+                //Call Loading animation and set default var values
+                If(gblMyBookingsFilter <> "UPCOMING", 
+                    Set(gblMyBookingsFilter, "UPCOMING"); 
+                    Select(btnTriggerFilterBookingsMBS);
+                    UpdateContext(
+                        {
+                            locIsLoadingVisible: false,
+                            locIsPageLoadingVisible: true,
+                            locIsDoneLoadingVisible: false,
+                            locStartLoadingTimer: false,
+                            locStartDoneTimer: false,
+                            locLoadingDuration: gblBaseLoadTime
+                        }
+                    );
+                    UpdateContext({locStartLoadingTimer: true});
+                );
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.HoverColor
+            PressedFill: =Self.HoverFill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: =btnFilterBookings_Previous.RadiusTopLeft
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =btnFilterBookings_Previous.Size
+            Text: =LookUp(colTranslationTable, key = "mybookings.filter.upcoming" && language.Value = gblAppUserLang, text)
+            Width: =btnFilterBookings_Previous.Width
+            X: =cntrFilterBookingsMBS.Width/2 - Self.Width/2
+            Y: =cntrFilterBookingsMBS.Height/2 - Self.Height/2
+            ZIndex: =3
+
+        btnFilterBookings_Previous As button:
+            BorderThickness: =0
+            Color: =Switch(gblMyBookingsFilter, "PREVIOUS", Color.White, LookUp(Colors, Color = "Primary", RGB))
+            Fill: =Switch(gblMyBookingsFilter, "PREVIOUS", LookUp(Colors, Color = "Primary", RGB), LookUp(Colors, Color = "Background", RGB))
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Font: =Font.'Lato Black'
+            Height: =Self.Size * 2.5
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: |-
+                =If(
+                    gblMyBookingsFilter = "PREVIOUS",
+                    ColorFade(
+                    LookUp(
+                        Colors,
+                        Color = "Primary",
+                        RGB
+                    ), 20%),
+                    RGBA(0, 0, 0, 0.20)
+                )
+            OnSelect: |-
+                =//If filter wasn't set to "PREVIOUS" before update it and trigger booking data refresh, otherwise if it was already selected ignore (don't refresh data)
+                //Call Loading animation and set default var values
+                If(gblMyBookingsFilter <> "PREVIOUS", 
+                    Set(gblMyBookingsFilter, "PREVIOUS"); 
+                    Select(btnTriggerFilterBookingsMBS);
+                    UpdateContext(
+                        {
+                            locIsLoadingVisible: false,
+                            locIsPageLoadingVisible: true,
+                            locIsDoneLoadingVisible: false,
+                            locStartLoadingTimer: false,
+                            locStartDoneTimer: false,
+                            locLoadingDuration: gblBaseLoadTime
+                        }
+                    );
+                    UpdateContext({locStartLoadingTimer: true});
+                );
+            PressedBorderColor: =Self.HoverBorderColor
+            PressedColor: =Self.HoverColor
+            PressedFill: =Self.HoverFill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    10 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: |-
+                =Min(14 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    14 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2) 
+                )
+            Text: =LookUp(colTranslationTable, key = "mybookings.filter.previous" && language.Value = gblAppUserLang, text)
+            Width: |-
+                =Min(
+                    Max(Len(Self.Text), Len(btnFilterBookings_Cancelled.Text), Len(btnFilterBookings_Upcoming.Text)) * Self.Size,
+                    (shpPageBackdropMBS.Width
+                    - (10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                    - (25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5)))/3.5
+                )
+            X: =btnFilterBookings_Previous.FocusedBorderThickness
+            Y: =cntrFilterBookingsMBS.Height/2 - Self.Height/2
+            ZIndex: =5
+
+    cmpLoadingAnimationMBS As cmp_LoadingAnimation:
+        Height: =cmpHeaderMBS.Height
+        IsTextVisible: =locIsLoadingVisible
+        LoadingText: =LookUp(colTranslationTable, key = "loading.text" && language.Value = gblAppUserLang, text)
+        PrimaryColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+        Y: =cmpHeaderMBS.Y + cmpHeaderMBS.Height/2 - Self.Height/2
+        ZIndex: =19
+
+    cmpDoneAnimationMBS As cmp_LoadingDoneAnimation:
+        DoneLoadingText: =LookUp(colTranslationTable, key = "loadingdone.text" && language.Value = gblAppUserLang, text)
+        Height: =cmpHeaderMBS.Height
+        IsTextVisible: =locIsDoneLoadingVisible
+        Visible: =true
+        X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+        Y: =cmpHeaderMBS.Y + cmpHeaderMBS.Height/2 - Self.Height/2
+        ZIndex: =20
+
+    grpNoBookingsMBS As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =20
+
+        btnBackToSearchMBS As button:
+            BorderColor: =Color.White
+            BorderThickness: |-
+                =Min(2 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            DisabledColor: =LookUp(Colors, Color = "Background", RGB)
+            DisabledFill: =LookUp(Colors, Color = "Grey", RGB)
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Font: =Font.'Lato Black'
+            Height: |-
+                =Min(100 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 0.75,  
+                        ScreenSize.Medium, 0.9,  
+                        ScreenSize.Large, 1.125,
+                        1.25),
+                    100 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 0.75,  
+                        ScreenSize.Medium, 0.9,  
+                        ScreenSize.Large, 1.125,
+                        1.25) 
+                )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =btnBackToSearchMBS.Color
+            HoverFill: =LookUp(Colors, Color = "Muted Primary", RGB)
+            OnSelect: =Navigate('Search Screen')
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedFill: =Color.White
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    10 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: |-
+                =Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.75,  
+                        1.9),
+                    18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.75,  
+                        1.9) 
+                )
+            TabIndex: =If(IsEmpty(colMyBookings_Results), 0, -1)
+            Text: =LookUp(colTranslationTable, key = "nav.book" && language.Value = gblAppUserLang, text)
+            Tooltip: =
+            Visible: =IsEmpty(galMyBookingResults.AllItems)
+            Width: =crdNoBookingsMBS.Width
+            X: =crdNoBookingsMBS.X + crdNoBookingsMBS.Width/2 - Self.Width/2
+            Y: |-
+                =crdNoBookingsMBS.Y + crdNoBookingsMBS.Height +
+                Min(25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5, 
+                        ScreenSize.Large, 1.75,
+                        2),
+                    25 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5, 
+                        ScreenSize.Large, 1.75,
+                        2)
+                )
+            ZIndex: =8
+
+        crdNoBookingsMBS As button:
+            BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+            BorderThickness: =0
+            DisabledBorderColor: =Self.BorderColor
+            DisabledColor: =Self.Color
+            DisabledFill: =Self.Fill
+            DisplayMode: =DisplayMode.Disabled
+            Fill: =RGBA(255, 255, 255, 1)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingMBS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsMBS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Height: |-
+                =400 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 0.5,  
+                        ScreenSize.Medium, 0.9,
+                        ScreenSize.Large, 1.35, 
+                        1.85)
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(15 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    15 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: |-
+                =//If(IsEmpty(galMyBookingResults.AllItems), 5, -1)
+                -1
+            Text: =""
+            Visible: =IsEmpty(galMyBookingResults.AllItems)
+            Width: |-
+                =shpPageBackdropMBS.Width
+                - (10 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+            X: =Parent.Width/2 - Self.Width/2
+            Y: |-
+                =shpPageBackdropMBS.Y +
+                (cmpNavMBS.Y + (shpFilterBackdrop.Y + shpFilterBackdrop.Height))/2 -
+                ((Self.Height/2) +
+                Min(25 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5, 
+                        ScreenSize.Large, 1.75,
+                        2),
+                    25 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5, 
+                        ScreenSize.Large, 1.75,
+                        2)
+                )/2 +
+                (btnBackToSearchMBS.Height/2))
+            ZIndex: =9
+
+        lblNoBookingsMBS As label:
+            Align: =Align.Center
+            AutoHeight: =true
+            Color: =LookUp(Colors, Color = "Primary", RGB)
+            Font: =Font.'Lato Black'
+            Height: =70
+            OnSelect: =Navigate('Search Screen')
+            PaddingLeft: =10
+            PaddingRight: =10
+            Size: |-
+                =Min(22 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9),
+                    22 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9) 
+                )
+            Text: =LookUp(colTranslationTable, key = "mybookings.nobookings" && language.Value = gblAppUserLang, text)
+            Visible: =IsEmpty(galMyBookingResults.AllItems)
+            Width: =crdNoBookingsMBS.Width/1.25
+            X: =crdNoBookingsMBS.X + crdNoBookingsMBS.Width/2 - Self.Width/2
+            Y: |-
+                =imgNoBookingsMBS.Y + imgNoBookingsMBS.Height + 
+                Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9),
+                    18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9) 
+                )
+            ZIndex: =10
+
+        imgNoBookingsMBS As image:
+            Height: =Self.Width
+            Image: =empty_calendar
+            OnSelect: =Navigate('Search Screen')
+            Visible: =IsEmpty(galMyBookingResults.AllItems)
+            Width: =Min(crdNoBookingsMBS.Width/2, crdNoBookingsMBS.Height/3)
+            X: =crdNoBookingsMBS.X + crdNoBookingsMBS.Width/2 - Self.Width/2
+            Y: |-
+                =crdNoBookingsMBS.Y + crdNoBookingsMBS.Height/2 - 
+                (Self.Height + 
+                Min(18 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9),
+                    18 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        1.9) 
+                ) + 
+                lblNoBookingsMBS.Height)/2
+            ZIndex: =11
+
+    lblFilterHeadingMBS As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading3
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "mybookings.filter" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =cntrFilterBookingsMBS.X - 1
+        Y: =cntrFilterBookingsMBS.Y - 1
+        ZIndex: =21
+
+    lblMyBookingsHeadingMBS As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "mybookings.bookingssection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropMBS.X
+        Y: =cmpHeaderMBS.Y + cmpHeaderMBS.Height
+        ZIndex: =22
+
+    cmpHeaderMBS As cmp_PageHeading:
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HeadingText: =LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingMBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsMBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropMBS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsMBS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingMBS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Visible: =true
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =23
+
+    cmpErrorModalMBS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: =LookUp(colTranslationTable, key = "errorpage.subtitle" && language.Value = gblAppUserLang, text)
+        Display_ErrorTitle: =LookUp(colTranslationTable, key = "errorpage.title" && language.Value = gblAppUserLang, text)
+        Height: =shpPageBackdropMBS.Height
+        ModalHeight: =shpPageBackdropMBS.Height
+        ModalWidth: =shpPageBackdropMBS.Width
+        ScreenSize_Height: =cmpScreenFunctionsMBS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingMBS.Text
+        Visible: =locIsErrorModalVisible
+        Width: =shpPageBackdropMBS.Width
+        X: =shpPageBackdropMBS.X
+        Y: =shpPageBackdropMBS.Y
+        ZIndex: =24
+
+    grpScreenSizingMBS As group:
+        Height: =5
+        Width: =5
+        X: =60
+        Y: =60
+        ZIndex: =24
+
+        lblScreenWidthSizingMBS As label:
+            Height: =0
+            Size: =21
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+            Y: =shpPageBackdropRS.Y + shpPageBackdropRS.Height
+            ZIndex: =4
+
+        cmpScreenFunctionsMBS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropMBS.X + shpPageBackdropMBS.Width
+            Y: =shpPageBackdropMBS.Y + shpPageBackdropMBS.Height
+            ZIndex: =6
+

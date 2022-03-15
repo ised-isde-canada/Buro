@@ -1,0 +1,11 @@
+<svg width="110" height="110" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <title>Layer 1</title>
+  <g id="Icon_feather-alert-circle" data-name="Icon feather-alert-circle">
+   <path id="Path_245" data-name="Path 245" d="m105,55a50,50 0 1 1 -50,-50a50,50 0 0 1 50,50z" fill="none" stroke="#d0021a" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+   <path id="Path_246" data-name="Path 246" d="m55,35l0,20" fill="none" stroke="#d0021a" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+   <path id="Path_247" data-name="Path 247" d="m55,75l0,0" fill="none" stroke="#d0021a" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+  </g>
+ </g>
+
+</svg>

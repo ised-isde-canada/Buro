@@ -1,0 +1,28 @@
+cmp_ScreenFunctions As CanvasComponent:
+    AppHeight: =0
+    AppHeightBreakPoints: |-
+        ={Small: 0, Medium: 1000, Large: 2000}
+    Fill: =RGBA(0, 0, 0, 0)
+    Height: =0
+    ScreenSize: |-
+        =If(
+            Self.AppHeight > Self.AppHeightBreakPoints.Large,
+            ScreenSize.ExtraLarge,
+            If(
+                Self.AppHeight > Self.AppHeightBreakPoints.Medium && Self.AppHeight <= Self.AppHeightBreakPoints.Large,
+                ScreenSize.Large,
+                If(
+                    Self.AppHeight > Self.AppHeightBreakPoints.Small && Self.AppHeight <= Self.AppHeightBreakPoints.Medium,
+                    ScreenSize.Medium,
+                    If(
+                        Self.AppHeight <= Self.AppHeightBreakPoints.Small,
+                        ScreenSize.Small
+                    )
+                )
+            )
+        )
+    Width: =0
+    X: =0
+    Y: =0
+    ZIndex: =1
+

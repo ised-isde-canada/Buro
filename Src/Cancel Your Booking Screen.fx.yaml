@@ -1,0 +1,1986 @@
+"'Cancel Your Booking Screen' As screen.'phoneLayout_Success_ver3.0'":
+    Fill: =
+    OnHidden: |-
+        =UpdateContext({locIsFeedbackDisplayed: false, locResetScrollPosition: false});
+    OnVisible: |
+        =//Call Loading animation and set default var values
+        UpdateContext(
+            {
+                locIsLoadingVisible: false,
+                locIsPageLoadingVisible: false,
+                locIsDoneLoadingVisible: false,
+                locStartLoadingTimer: false,
+                locStartDoneTimer: false,
+                locLoadingDuration: gblBaseLoadTime,
+                locIsErrorModalVisible: false,
+                locResetScrollPosition: true,
+                locCancelOptionPressed: false,
+                locCancelBookingError: false,
+                locCancelBookingErrorMsg: ""
+            }
+        );
+        
+        UpdateContext({locBookingForAnotherPerson: If(!IsBlank(First(colMyBookingDetails_Booking).user_email) && !IsBlank(First(colMyBookingDetails_Booking).proxy_user_email), true, false)});
+
+    shpScreenBackdropCYBS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropCYBS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    timLoadingCYBS As timer:
+        AutoPause: =false
+        Duration: =locLoadingDuration
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsLoadingVisible: false, locStartLoadingTimer:false});
+            UpdateContext({ locStartDoneTimer:true});
+        OnTimerStart: |-
+            =UpdateContext({locIsLoadingVisible: true});
+        Reset: =true
+        Start: =locStartLoadingTimer
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+        Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+        ZIndex: =3
+
+    timDoneLoadingCYBS As timer:
+        Duration: =2000
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsDoneLoadingVisible:false, locStartDoneTimer:false});
+        OnTimerStart: |-
+            =UpdateContext({locIsDoneLoadingVisible: true, locIsPageLoadingVisible: false});
+        Reset: =true
+        Start: =locStartDoneTimer
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+        Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+        ZIndex: =4
+
+    canScrollableCancelConfirmModalCYBS As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =App.Height - cmpHeaderCYBS.Height - cmpNavCYBS.Height
+        Visible: =!locIsPageLoadingVisible && locCancelOptionPressed
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =cmpHeaderCYBS.Y + cmpHeaderCYBS.Height
+        ZIndex: =7
+
+        canCanvasCardCancelConfirmCYBS As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            Height: |-
+                =Max(
+                    canScrollableCancelConfirmModalCYBS.Height, 
+                
+                    Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2)
+                    ) + btnConfirmCardCYBS.Height + 
+                    Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2)
+                    ) +
+                    btnMyBookingsCYBS.Height + 
+                    Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2)
+                    )
+                )
+            Visible: =locResetScrollPosition
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+            grpModalContentCYBS As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =46
+
+                btnMyBookingsCYBS As button:
+                    BorderColor: =Color.White
+                    BorderThickness: |-
+                        =Min(2 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    DisabledColor: =LookUp(Colors, Color = "Background", RGB)
+                    DisabledFill: =LookUp(Colors, Color = "Grey", RGB)
+                    Fill: =LookUp(Colors, Color = "Primary", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Font: =Font.'Lato Black'
+                    Height: |-
+                        =Min(100 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 0.75,  
+                                ScreenSize.Medium, 0.9,  
+                                ScreenSize.Large, 1.125,
+                                1.25),
+                            100 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 0.75,  
+                                ScreenSize.Medium, 0.9,  
+                                ScreenSize.Large, 1.125,
+                                1.25) 
+                        )
+                    HoverBorderColor: =RGBA(0,0,0,0)
+                    HoverColor: =btnMyBookingsCYBS.Color
+                    HoverFill: =LookUp(Colors, Color = "Muted Primary", RGB)
+                    OnSelect: =Navigate('My Bookings Screen', Cover)
+                    PressedBorderColor: =RGBA(0,0,0,0)
+                    PressedFill: =Color.White
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Size: |-
+                        =Min(18 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.75,  
+                                1.9),
+                            18 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.75,  
+                                1.9) 
+                        )
+                    Text: =LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text)
+                    Tooltip: =
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible
+                    Width: =btnConfirmCardCYBS.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =btnConfirmCardCYBS.Y + btnConfirmCardCYBS.Height + 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        )
+                    ZIndex: =37
+
+                btnConfirmCardCYBS As button:
+                    BorderThickness: =0
+                    Color: =Color.White
+                    DisabledBorderColor: =Self.BorderColor
+                    DisabledColor: =Self.Color
+                    DisabledFill: =Self.Fill
+                    DisplayMode: =DisplayMode.Disabled
+                    Fill: =Color.White
+                    Height: |
+                        =Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) +
+                        lblCancellationMessage.Height +
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2)
+                        ) +
+                        imgCancellationSuccess.Height +
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2),
+                        35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2)
+                        ) +
+                        lblBookingDetailsCYBS.Height +
+                        
+                        If(locBookingForAnotherPerson,
+                            Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                            ) +
+                            lblBookingForSubtitleCYBS.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            lblBookingForNameCYBS.Height +
+                            Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                                15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            lblBookedBySubtitleCYBS.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            lblBookedByNameCYBS.Height) +
+                        
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                ScreenSize.Small, 0.75,
+                                ScreenSize.Medium, 1,
+                                ScreenSize.Large, 1.5,
+                                2)
+                        )
+                    HoverBorderColor: =Self.Fill
+                    HoverColor: =Self.Fill
+                    HoverFill: =Self.Fill
+                    PressedFill: =Self.Fill
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            10 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Size: =0
+                    TabIndex: =-1
+                    Text: =""
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible
+                    Width: |-
+                        =cmpHeaderCYBS.Width
+                        - (10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                        - (25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                    X: =Parent.Width/2 - Self.Width/2
+                    Y: |-
+                        =Max(
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ),
+                        canCanvasCardCancelConfirmCYBS.Height/2 - 
+                        (Self.Height + 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ) + btnMyBookingsCYBS.Height + 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ))/2
+                        )
+                    ZIndex: =38
+
+                lblBookedByNameCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =lblBookingDetailsCYBS.Size
+                    Text: |-
+                        =With(First(colMyBookingDetails_Booking),
+                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                ThisRecord.booking_by.GivenName & " " & ThisRecord.booking_by.Surname & If(ThisRecord.booking_by.Mail <> gblAppUserDetails.mail, Char(13) & " (" & Lower    (ThisRecord.booking_by.Mail) & ")"
+                            )
+                            )
+                        )
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible, 
+                            lblBookedBySubtitleCYBS.Y + lblBookedBySubtitleCYBS.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ),
+                            lblBookedBySubtitleCYBS.Y + 1
+                        )
+                    ZIndex: =39
+
+                lblBookedBySubtitleCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =lblBookingDetailsCYBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = gblAppUserLang, text)
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible,
+                            lblBookingForNameCYBS.Y + lblBookingForNameCYBS.Height +
+                            Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ),
+                            lblBookingForNameCYBS.Y + 1
+                        )
+                    ZIndex: =40
+
+                lblBookingForNameCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =lblBookingDetailsCYBS.Size
+                    Text: |-
+                        =With(First(colMyBookingDetails_Booking),
+                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                ThisRecord.booking_for.GivenName & " " & ThisRecord.booking_for.Surname & If(ThisRecord.booking_for.Mail <> gblAppUserDetails.mail, Char(13) & " (" & Lower    (ThisRecord.booking_for.Mail) & ")"
+                            )
+                            )
+                        )
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible, 
+                            lblBookingForSubtitleCYBS.Y + lblBookingForSubtitleCYBS.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ), lblBookingForSubtitleCYBS.Y + 1
+                        )
+                    ZIndex: =41
+
+                lblBookingForSubtitleCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =lblBookingDetailsCYBS.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = gblAppUserLang, text)
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =lblBookingDetailsCYBS.Y + lblBookingDetailsCYBS.Height + 
+                        Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =42
+
+                lblBookingDetailsCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =imgCancellationSuccess.Height
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Text: |-
+                        =//Personal Booking Reads:
+                        // Start Date
+                        // Time Range
+                        // Desk Name, Seating Type
+                        // [CONDITIONAL] Workstation Specifics
+                        // Floor Name, Building Address
+                        // Building Address and Name
+                        With(First(colMyBookingDetails_Booking),
+                            Proper(Switch(gblAppUserLang, "fr", 
+                                Text(start_date, "[$-en-US]dddd d, mmmm, yyyy", "fr-FR"),
+                                Text(start_date, "[$-en-US]dddd, mmmm d, yyyy", "en-CA")
+                                )
+                            ) & " 
+                            " &
+                            LookUp(colTimeslots, ID = timeslot_id.Id, Switch(gblAppUserLang, "fr", time_range_fr, time_range_en)) & "
+                            " & 
+                            LookUp(colMyBookings_Desks, ID = desk_id.Id, Switch(gblAppUserLang, "fr", desk_name_fr, desk_name_en)) & ", " & 
+                            LookUp(colSeatingTypeTable, ID = LookUp(colMyBookings_Desks, ID = desk_id.Id, seating_type_id.Id), Switch(gblAppUserLang, "fr", seating_type_name_fr, seating_type_name_en)) & "
+                            " &
+                            With(LookUp(colMyBookings_Desks, ID = desk_id.Id) As booked_desk,
+                                If(!IsEmpty(booked_desk.workstation_specifics),
+                                    Concat(booked_desk.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(booked_desk.workstation_specifics).Value <> tag.Value, ", ")) & "
+                                "
+                                )
+                            ) &
+                            LookUp(colMyBookings_Floors, ID = LookUp(colMyBookings_Neighbourhoods, ID = LookUp(colMyBookings_Desks, ID = desk_id.Id, neighbourhood_id_value), floor_id_value), Switch(gblAppUserLang, "fr", floor_name_fr, floor_name_en)) & ", " & 
+                            LookUp(colMyBookings_Buildings, ID = LookUp(colMyBookings_Desks, ID = First(colMyBookingDetails_Booking).desk_id_value, building_id_value), Switch(gblAppUserLang, "fr", building_add_fr & " 
+                        " & building_name_fr, building_add_en & "
+                        " & building_name_en))
+                        )
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =(imgCancellationSuccess.Y + imgCancellationSuccess.Height) +
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) 
+                    ZIndex: =43
+
+                imgCancellationSuccess As image:
+                    Height: =Self.Width
+                    Image: =empty_calendar
+                    PaddingBottom: =1
+                    PaddingLeft: =1
+                    PaddingRight: =1
+                    PaddingTop: =1
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible
+                    Width: |-
+                        =Min(75 *  Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.15,
+                                ScreenSize.Large, 1.55,  
+                                2),
+                           75 *  Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.15,
+                                ScreenSize.Large, 1.55,  
+                                2)     
+                        )
+                    X: =Parent.Width/2 - Self.Width/2
+                    Y: |-
+                        =lblCancellationMessage.Y + lblCancellationMessage.Height +
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =44
+
+                lblCancellationMessage As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Bold
+                    Height: =imgCancellationSuccess.Height
+                    LineHeight: =1
+                    Live: =Live.Assertive
+                    Size: |-
+                        =Min(20 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Text: =LookUp(colTranslationTable, key = "cancelyourbooking.confirmation.text" && language.Value = gblAppUserLang, text)
+                    Visible: =locCancelOptionPressed && !locIsLoadingVisible
+                    Width: =shpPageBackdropCYBS.Width * 0.8
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =btnConfirmCardCYBS.Y +
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =45
+
+    canScrollableCancelModalCYBS As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =App.Height - cmpHeaderCYBS.Height - cmpNavCYBS.Height
+        Visible: =!locCancelOptionPressed
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =cmpHeaderCYBS.Y + cmpHeaderCYBS.Height
+        ZIndex: =8
+
+        canCanvasCancelCYBS As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            Height: |-
+                =Max(
+                    canScrollableCancelModalCYBS.Height, 
+                
+                    Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2)
+                    ) + 
+                    btnCancelCYBS.Height + 
+                    If(locCancelBookingError, 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ) +
+                        shpErrorBackgroundCYBS.Height
+                    ) +
+                    Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2),
+                        25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                            ScreenSize.Small, 1,  
+                            ScreenSize.Medium, 1.5, 
+                            ScreenSize.Large, 1.75,
+                            2)
+                    )
+                
+                )
+            Visible: =locResetScrollPosition
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+            grpCancelModal As group:
+                Height: =5
+                Width: =5
+                X: =40
+                Y: =40
+                ZIndex: =37
+
+                btnCancelCYBS As button:
+                    BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                    BorderThickness: =0
+                    DisabledBorderColor: =Self.BorderColor
+                    DisabledColor: =Self.Color
+                    DisabledFill: =Self.Fill
+                    DisplayMode: =DisplayMode.Disabled
+                    Fill: =RGBA(255, 255, 255, 1)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: =
+                    Height: |-
+                        =Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) + 
+                        imgCancelWarningCYBS.Height +
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) +
+                        lblCancelAreYouSureCYBS.Height +
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) +
+                        'lblBookingDetailsCM-CYBS'.Height +
+                        
+                        If(locBookingForAnotherPerson,
+                            Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            'lblBookingForSubtitleCM-CYBS'.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) + 
+                            'lblBookingForNameCM-CYBS'.Height +
+                            Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            'lblBookedBySubtitleCM-CYBS'.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ) +
+                            'lblBookedByNameCM-CYBS'.Height) +
+                        
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) +
+                        btnCancelYesCYBS.Height +
+                        Min(20 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            20 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) +
+                        btnCancelNoCYBS.Height + 
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    HoverBorderColor: =
+                    HoverColor: =
+                    HoverFill: =
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Size: =0
+                    TabIndex: =-1
+                    Text: =""
+                    Visible: =!locCancelOptionPressed
+                    Width: |-
+                        =cmpHeaderCYBS.Width
+                        - (10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                        - (25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,  
+                                ScreenSize.Large, 1.75,
+                                5))
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =Max(
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ),
+                        canCanvasCancelCYBS.Height/2 - 
+                        (Self.Height + 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ) + btnCancelCYBS.Height + 
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5, 
+                                ScreenSize.Large, 1.75,
+                                2)
+                        ))/2
+                        )
+                    ZIndex: =1
+
+                btnCancelNoCYBS As button:
+                    BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+                    BorderThickness: |-
+                        =Min(2 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Fill: =Color.White
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Font: =Font.'Lato Black'
+                    Height: |-
+                        =Min(50 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            50 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                        )
+                    HoverBorderColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+                    HoverColor: =Self.HoverBorderColor
+                    HoverFill: =Self.Fill
+                    OnSelect: =Back()
+                    PressedBorderColor: =Self.Color
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    TabIndex: =If(locCancelOptionPressed, -1, 0)
+                    Text: =LookUp(colTranslationTable, key = "bookingdetails.cancel.no" && language.Value = gblAppUserLang, text)
+                    Visible: =!locCancelOptionPressed
+                    Width: =btnCancelCYBS.Width * 0.75
+                    X: =btnCancelYesCYBS.X
+                    Y: |-
+                        =btnCancelYesCYBS.Y + btnCancelYesCYBS.Height + 
+                        Min(20 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            20 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) 
+                    ZIndex: =2
+
+                btnCancelYesCYBS As button:
+                    AutoDisableOnSelect: =false
+                    BorderThickness: =0
+                    Fill: =LookUp(Colors, Color = "Primary", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Font: =Font.'Lato Black'
+                    FontWeight: =FontWeight.Bold
+                    Height: |-
+                        =Min(50 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            50 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                        )
+                    HoverFill: =LookUp(Colors, Color = "Muted Primary", RGB)
+                    OnSelect: |
+                        =If(locCancelBookingError,
+                        
+                            //If error has already been displayed and they try to select yes again
+                            Notify(locCancelBookingErrorMsg, NotificationType.Error, 10000),
+                        
+                            //Otherwise if this is the first time pressing the "Yes" button check for an error
+                        
+                        
+                            //Trigger Loading
+                            Concurrent(
+                                UpdateContext({locStartLoadingTimer: true}),
+                                UpdateContext({locReservationID: First(colMyBookingDetails_Booking).ID})
+                            );
+                        
+                            //Refresh Reservations Datasource
+                            IfError(
+                                Refresh(Reservations),
+                        
+                                //If there's an error show the component (error modal)
+                                UpdateContext({locIsErrorModalVisible: true});
+                                
+                                //If there's an error also try to patch the error details to the Sharepoint Error list
+                                Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                {   user_email: Lower(gblAppUserDetails.mail), 
+                                    error_code: First(Errors(Reservations)).Error,
+                                    error_message: First(Errors(Reservations)).Message, 
+                                    error_log: "Refresh(Reservations)",
+                                    error_origin: App.ActiveScreen 
+                                }),
+                                false
+                            );
+                        
+                            If(
+                                IfError(
+                                    LookUp(
+                                        Reservations,
+                                        ID = locReservationID,
+                                        status
+                                    ).Value = "CANCELLED",
+                        
+                                    //If there's an error show the component (error modal)
+                                    UpdateContext({locIsErrorModalVisible: true});
+                                    
+                                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                    {   user_email: Lower(gblAppUserDetails.mail), 
+                                        error_code: First(Errors(Reservations)).Error,
+                                        error_message: First(Errors(Reservations)).Message, 
+                                        error_log: "LookUp( Reservations, ID = locReservationID, status ).Value = 'CANCELLED'",
+                                        error_origin: App.ActiveScreen 
+                                    });
+                                    true
+                                ),
+                        
+                                //If the booking was cancelled in the meantime show error message
+                                UpdateContext(
+                                    {
+                                        locCancelBookingError: true,
+                                        locCancelBookingErrorMsg: LookUp(
+                                            colTranslationTable,
+                                            key = "bookingdetails.cancel.error.statusiscancelled" && language.Value = gblAppUserLang,
+                                            text
+                                        )
+                                    }
+                                );
+                                Notify(locCancelBookingErrorMsg, NotificationType.Error, 10000),
+                        
+                                //If the booking wasn't cancelled in the meantime update cancel the booking 
+                                IfError(
+                                    Patch(
+                                        Reservations,
+                                        LookUp(
+                                            Reservations,
+                                            ID = locReservationID
+                                        ),
+                                        {
+                                            status: {
+                                                '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                                                Value: "CANCELLED"
+                                            }
+                                        }
+                                    ),
+                                    //If there's an error show the component (error modal)
+                                    UpdateContext({locIsErrorModalVisible: true});
+                                    
+                                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                    {   user_email: Lower(gblAppUserDetails.mail), 
+                                        error_code: First(Errors(Reservations)).Error,
+                                        error_message: First(Errors(Reservations)).Message, 
+                                        error_log: "Patch(Reservations ...)",
+                                        error_origin: App.ActiveScreen 
+                                    }),
+                                    {}
+                                )
+                            );
+                        
+                            //Regardless, get the most up-to-date reservation status
+                            IfError(
+                                    Patch(colMyBookings_Results, LookUp(colMyBookings_Results, ID = locReservationID), { status: LookUp(Reservations, ID = locReservationID).status}),
+                                    
+                                    //If there's an error show the component (error modal)
+                                    UpdateContext({locIsErrorModalVisible: true});
+                                    
+                                    //If there's an error also try to patch the error details to the Sharepoint Error list
+                                    Patch(ExternalErrors, Defaults(ExternalErrors), 
+                                    {   user_email: Lower(gblAppUserDetails.mail), 
+                                        error_code: First(Errors(Reservations)).Error,
+                                        error_message: First(Errors(Reservations)).Message, 
+                                        error_log: "LookUp(Reservations, ID = locReservationID).status",
+                                        error_origin: App.ActiveScreen 
+                                    }),
+                                    {}
+                            );
+                        
+                            //Update local collection that the Booking Details page pulls from
+                            Patch(colMyBookingDetails_Booking, First(colMyBookingDetails_Booking), { status: LookUp(colMyBookings_Results, ID = locReservationID, status) });
+                        
+                            //Ensure navigation to My Bookings from this page brings users to the Cancelled bookings
+                            Set(gblMyBookingsFilter, "CANCELLED");
+                        
+                            If(!locCancelBookingError, 
+                                UpdateContext({locCancelOptionPressed: true})
+                            );
+                        
+                            //Stop the timer
+                            UpdateContext({locLoadingDuration: 0});
+                        )
+                    PressedBorderColor: =RGBA(0,0,0,0)
+                    RadiusBottomLeft: =Self.RadiusTopLeft
+                    RadiusBottomRight: =Self.RadiusTopLeft
+                    RadiusTopLeft: |-
+                        =Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                2)
+                        )
+                    RadiusTopRight: =Self.RadiusTopLeft
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    TabIndex: =If(locCancelOptionPressed, -1, 0)
+                    Text: =LookUp(colTranslationTable, key = "bookingdetails.cancel.yes" && language.Value = gblAppUserLang, text)
+                    Visible: =!locCancelOptionPressed
+                    Width: =btnCancelCYBS.Width * 0.75
+                    X: =btnCancelCYBS.X + btnCancelCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(locBookingForAnotherPerson, 'lblBookedByNameCM-CYBS'.Y + 'lblBookedByNameCM-CYBS'.Height, 'lblBookingDetailsCM-CYBS'.Y + 'lblBookingDetailsCM-CYBS'.Height) +
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =3
+
+                "'lblBookedByNameCM-CYBS' As label":
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: ='lblBookingDetailsCM-CYBS'.Size
+                    Text: |-
+                        =With(First(colMyBookingDetails_Booking),
+                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                ThisRecord.booking_by.GivenName & " " & ThisRecord.booking_by.Surname & If(ThisRecord.booking_by.Mail <> gblAppUserDetails.mail, Char(13) & " (" & Lower    (ThisRecord.booking_by.Mail) & ")"
+                            )
+                            )
+                        )
+                    Visible: =!locCancelOptionPressed && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible, 
+                            'lblBookedBySubtitleCM-CYBS'.Y + 'lblBookedBySubtitleCM-CYBS'.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ), 
+                            'lblBookedBySubtitleCM-CYBS'.Y + 1
+                        )
+                    ZIndex: =5
+
+                "'lblBookedBySubtitleCM-CYBS' As label":
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: ='lblBookingDetailsCM-CYBS'.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookedby" && language.Value = gblAppUserLang, text)
+                    Visible: =!locCancelOptionPressed && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible,
+                        'lblBookingForNameCM-CYBS'.Y + 'lblBookingForNameCM-CYBS'.Height +
+                        Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ),
+                        'lblBookingForNameCM-CYBS'.Y + 1)
+                    ZIndex: =6
+
+                "'lblBookingForNameCM-CYBS' As label":
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: ='lblBookingDetailsCM-CYBS'.Size
+                    Text: |-
+                        =With(First(colMyBookingDetails_Booking),
+                            If(!IsBlank(ThisRecord.user_email) && !IsBlank(ThisRecord.proxy_user_email),
+                                ThisRecord.booking_for.GivenName & " " & ThisRecord.booking_for.Surname & If(ThisRecord.booking_for.Mail <> gblAppUserDetails.mail, Char(13) & " (" & Lower    (ThisRecord.booking_for.Mail) & ")"
+                            )
+                            )
+                        )
+                    Visible: =!locCancelOptionPressed && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =If(Self.Visible, 
+                        
+                            'lblBookingForSubtitleCM-CYBS'.Y + 'lblBookingForSubtitleCM-CYBS'.Height +
+                            Min(3 * Switch(Value(lblScreenWidthSizingCBS.Text),
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2),
+                                3 * Switch(cmpScreenFunctionsCBS.ScreenSize,
+                                        ScreenSize.Small, 0.75,
+                                        ScreenSize.Medium, 1,
+                                        ScreenSize.Large, 1.5,
+                                        2)
+                            ), 
+                            'lblBookingForSubtitleCM-CYBS'.Y + 1
+                        )
+                    ZIndex: =7
+
+                "'lblBookingForSubtitleCM-CYBS' As label":
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Grey", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: ='lblBookingDetailsCM-CYBS'.Size
+                    Text: =LookUp(colTranslationTable, key = "reviewbooking.bookingfor" && language.Value = gblAppUserLang, text)
+                    Visible: =!locCancelOptionPressed && locBookingForAnotherPerson
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        ='lblBookingDetailsCM-CYBS'.Y + 'lblBookingDetailsCM-CYBS'.Height + 
+                        Min(15 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            15 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =8
+
+                "'lblBookingDetailsCM-CYBS' As label":
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.Lato
+                    FontWeight: =FontWeight.Bold
+                    Height: =0
+                    Live: =Live.Assertive
+                    Size: |-
+                        =Min(16 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            16 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Text: |-
+                        =//Personal Booking Reads:
+                        // Start Date
+                        // Time Range
+                        // Desk Name, Seating Type
+                        // [CONDITIONAL] Workstation Specifics
+                        // Floor Name, Building Address
+                        // Building Address and Name
+                        With(First(colMyBookingDetails_Booking),
+                            Proper(Switch(gblAppUserLang, "fr", 
+                                Text(start_date, "[$-en-US]dddd d, mmmm, yyyy", "fr-FR"),
+                                Text(start_date, "[$-en-US]dddd, mmmm d, yyyy", "en-CA")
+                                )
+                            ) & " 
+                            " &
+                            LookUp(colTimeslots, ID = timeslot_id.Id, Switch(gblAppUserLang, "fr", time_range_fr, time_range_en)) & "
+                            " & 
+                            LookUp(colMyBookings_Desks, ID = desk_id.Id, Switch(gblAppUserLang, "fr", desk_name_fr, desk_name_en)) & ", " & 
+                            LookUp(colSeatingTypeTable, ID = LookUp(colMyBookings_Desks, ID = desk_id.Id, seating_type_id.Id), Switch(gblAppUserLang, "fr", seating_type_name_fr, seating_type_name_en)) & "
+                            " &
+                            With(LookUp(colMyBookings_Desks, ID = desk_id.Id) As booked_desk,
+                                If(!IsEmpty(booked_desk.workstation_specifics),
+                                    Concat(booked_desk.workstation_specifics As tag, Switch(gblAppUserLang, "fr", Last(Split(tag.Value, " | ")).Result, First(Split(tag.Value, " | ")).Result) & If(Last(booked_desk.workstation_specifics).Value <> tag.Value, ", ")) & "
+                                "
+                                )
+                            ) &
+                            LookUp(colMyBookings_Floors, ID = LookUp(colMyBookings_Neighbourhoods, ID = LookUp(colMyBookings_Desks, ID = desk_id.Id, neighbourhood_id_value), floor_id_value), Switch(gblAppUserLang, "fr", floor_name_fr, floor_name_en)) & ", " & 
+                            LookUp(colMyBookings_Buildings, ID = LookUp(colMyBookings_Desks, ID = First(colMyBookingDetails_Booking).desk_id_value, building_id_value), Switch(gblAppUserLang, "fr", building_add_fr & " 
+                        " & building_name_fr, building_add_en & "
+                        " & building_name_en))
+                        )
+                    Visible: =!locCancelOptionPressed
+                    Width: =lblCancellationMessage.Width
+                    X: =btnConfirmCardCYBS.X + btnConfirmCardCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =lblCancelAreYouSureCYBS.Y + lblCancelAreYouSureCYBS.Height +
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) 
+                    ZIndex: =9
+
+                lblCancelAreYouSureCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =LookUp(Colors, Color = "Primary", RGB)
+                    Font: =Font.'Lato Black'
+                    Height: =70
+                    Size: |-
+                        =Min(20 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75),
+                            20 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.25,
+                                ScreenSize.Large, 1.5,  
+                                1.75) 
+                        )
+                    Text: =LookUp(colTranslationTable, key = "bookingdetails.cancel.message" && language.Value = gblAppUserLang, text)
+                    Visible: =!locCancelOptionPressed
+                    Width: =btnCancelCYBS.Width * 0.8
+                    X: =btnCancelCYBS.X + btnCancelCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =imgCancelWarningCYBS.Y + imgCancelWarningCYBS.Height +
+                        Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        )
+                    ZIndex: =11
+
+                imgCancelWarningCYBS As image:
+                    Height: =Self.Width
+                    Image: =alert_circle
+                    Visible: =!locCancelOptionPressed
+                    Width: |-
+                        =Min(75 *  Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.15,
+                                ScreenSize.Large, 1.55,  
+                                2),
+                           75 *  Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.15,
+                                ScreenSize.Large, 1.55,  
+                                2)     
+                        )
+                    X: =btnCancelCYBS.X + btnCancelCYBS.Width/2 - Self.Width/2
+                    Y: |
+                        =btnCancelCYBS.Y + 
+                        Min(35 * Switch(Value(lblScreenWidthSizingCYBS.Text),
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2),
+                            35 * Switch(cmpScreenFunctionsCYBS.ScreenSize,
+                                    ScreenSize.Small, 0.75,
+                                    ScreenSize.Medium, 1,
+                                    ScreenSize.Large, 1.5,
+                                    2)
+                        ) 
+                    ZIndex: =12
+
+            grpBookingError As group:
+                Height: =5
+                Width: =5
+                X: =35
+                Y: =40
+                ZIndex: =37
+
+                shpErrorBackgroundCYBS As rectangle:
+                    BorderColor: =LookUp(Colors, Color = "Error Primary", RGB)
+                    BorderThickness: |-
+                        =Min(2 * Switch(Value(lblScreenWidthSizingBDS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2 * Switch(cmpScreenFunctionsBDS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Fill: =LookUp(Colors, Color = "Error Secondary", RGB)
+                    FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+                    FocusedBorderThickness: |-
+                        =Min(2.5 * Switch(Value(lblScreenWidthSizingBDS.Text),
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75),
+                            2.5 * Switch(cmpScreenFunctionsBDS.ScreenSize,
+                                    ScreenSize.Small, 1,
+                                    ScreenSize.Medium, 1.25,
+                                    ScreenSize.Large, 1.5,
+                                    1.75)
+                        )
+                    Height: |-
+                        =imgErrorIconCYBS.Height + 
+                        lblCancelErrorCYBS.Height +
+                        Min(15 * Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2) 
+                        ) * 3
+                    Visible: =locCancelBookingError
+                    Width: =crdConfirmSeatingRBS.Width
+                    X: =canCanvasCardRBS.X + canCanvasCardRBS.Width/2 - Self.Width/2
+                    Y: |
+                        =If(locCancelBookingError, 
+                            btnCancelCYBS.Y + btnCancelCYBS.Height + 
+                            Min(25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.5, 
+                                    ScreenSize.Large, 1.75,
+                                    2),
+                                25 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.5, 
+                                    ScreenSize.Large, 1.75,
+                                    2)
+                            ),
+                            0
+                        )
+                    ZIndex: =13
+
+                lblCancelErrorCYBS As label:
+                    Align: =Align.Center
+                    AutoHeight: =true
+                    Color: =Color.Red
+                    Font: =Font.Lato
+                    Height: =30
+                    Live: =Live.Assertive
+                    PaddingLeft: =25
+                    PaddingRight: =25
+                    PaddingTop: =0
+                    Size: |-
+                        =Min(12 *  Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                           12 *  Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)     
+                        )
+                    Text: =Switch(locCancelBookingError, true, locCancelBookingErrorMsg, false, "")
+                    Width: =btnBookNow.Width
+                    X: =shpErrorBackgroundCYBS.X + shpErrorBackgroundCYBS.Width/2 - Self.Width/2
+                    Y: |
+                        =If(Self.Text <> "",
+                            imgErrorIconCYBS.Y + imgErrorIconCYBS.Height + 
+                            Min(15 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.5,
+                                    ScreenSize.Large, 1.75,  
+                                    2),
+                                15 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                    ScreenSize.Small, 1,  
+                                    ScreenSize.Medium, 1.5,
+                                    ScreenSize.Large, 1.75,  
+                                    2) 
+                            ),
+                            btnCancelNoCYBS.Y + 1
+                        )
+                    ZIndex: =14
+
+                imgErrorIconCYBS As image:
+                    Height: =Self.Width
+                    Image: ='alert_circle (red)'
+                    Visible: =locCancelBookingError
+                    Width: |-
+                        =Min(45 * Switch(Value(lblScreenWidthSizingRBS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            45 * Switch(cmpScreenFunctionsRBS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2)
+                            )
+                    X: =shpErrorBackgroundCYBS.X + shpErrorBackgroundCYBS.Width/2 - Self.Width/2
+                    Y: |-
+                        =shpErrorBackgroundCYBS.Y + 
+                        Min(15 * Switch(Value(lblScreenWidthSizingBDS.Text),  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2),
+                            15 * Switch(cmpScreenFunctionsBDS.ScreenSize,  
+                                ScreenSize.Small, 1,  
+                                ScreenSize.Medium, 1.5,
+                                ScreenSize.Large, 1.75,  
+                                2) 
+                        )
+                    ZIndex: =15
+
+    lblConfirmationHeadingCYBS As label:
+        AutoHeight: =true
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =If(locCancelOptionPressed, LookUp(colTranslationTable, key = "cancelyourbooking.detailssection" && language.Value = gblAppUserLang, text), "")
+        Width: =0
+        X: =shpPageBackdropCYBS.X
+        Y: =cmpHeaderCYBS.Y + cmpHeaderCYBS.Height
+        ZIndex: =11
+
+    cmpNavCYBS As cmp_MainNav:
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                10 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        Height: |-
+            =Min(86 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                86 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                    ScreenSize.Small, 1.25,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        MutedColor: =LookUp(Colors, Color = "Grey", RGB)
+        NavigateToText: =LookUp(colTranslationTable, key = "nav.navigate" && language.Value = gblAppUserLang, text)
+        NavItems: |-
+            =Table(
+                {
+                    Key: "profile",
+                    Label: gblAppUserDetails.givenName,
+                    NavigationLink: 'My Profile Screen'
+                },
+                {
+                    Key: "newBooking",
+                    Label: LookUp(colTranslationTable, key = "nav.book" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'Search Screen'
+                },
+                {
+                    Key: "bookings",
+                    Label: LookUp(colTranslationTable, key = "nav.bookings" && language.Value = gblAppUserLang, text),
+                    NavigationLink: 'My Bookings Screen'
+                }
+            )
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsCYBS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingCYBS.Text)
+        SelectedItem: ="newBooking"
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height - Self.Height
+        ZIndex: =12
+
+    cmpDoneAnimationCYBS As cmp_LoadingDoneAnimation:
+        DoneLoadingText: =LookUp(colTranslationTable, key = "loadingdone.text" && language.Value = gblAppUserLang, text)
+        Height: =cmpHeaderBDS.Height
+        IsTextVisible: =locIsDoneLoadingVisible
+        Visible: =true
+        X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+        Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+        ZIndex: =13
+
+    cmpLoadingAnimationCYBS As cmp_LoadingAnimation:
+        Height: =cmpHeaderBDS.Height
+        IsTextVisible: =locIsLoadingVisible
+        LoadingText: =LookUp(colTranslationTable, key = "loading.text" && language.Value = gblAppUserLang, text)
+        PrimaryColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+        Visible: =true
+        X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+        Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+        ZIndex: =14
+
+    cmpHeaderCYBS As cmp_PageHeading:
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HeadingText: =LookUp(colTranslationTable, key = "header.cancelyourbooking" && language.Value = gblAppUserLang, text)
+        Height: |-
+            =Min(78 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropCYBS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsCYBS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingCYBS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =15
+
+    cmpErrorModalCYBS As cmp_ErrorModal:
+        Color_Background: =LookUp(Colors, Color = "Background", RGB)
+        Color_Focused: =LookUp(Colors, Color = "Focus Primary", RGB)
+        Color_Primary: =LookUp(Colors, Color = "Primary", RGB)
+        Display_ErrorSubtitle: =LookUp(colTranslationTable, key = "errorpage.subtitle" && language.Value = gblAppUserLang, text)
+        Display_ErrorTitle: =LookUp(colTranslationTable, key = "errorpage.title" && language.Value = gblAppUserLang, text)
+        Height: =shpPageBackdropCYBS.Height
+        ModalHeight: =shpPageBackdropCYBS.Height
+        ModalWidth: =shpPageBackdropCYBS.Width
+        ScreenSize_Height: =cmpScreenFunctionsCYBS.ScreenSize
+        ScreenSize_Width: =lblScreenWidthSizingCYBS.Text
+        Visible: =locIsErrorModalVisible
+        Width: =shpPageBackdropCYBS.Width
+        X: =shpPageBackdropCYBS.X
+        Y: =shpPageBackdropCYBS.Y
+        ZIndex: =16
+
+    grpLoadingPageCYBS As group:
+        Height: =5
+        Width: =5
+        X: =39
+        Y: =130
+        ZIndex: =20
+
+        crdLoadingPageCYBS As button:
+            BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: |-
+                =cmpNavCBS.Y - Self.Y +
+                Min(30 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25, 
+                        ScreenSize.Large, 1.5,
+                        2),
+                     30 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25, 
+                        ScreenSize.Large, 1.5,
+                        2)
+                )/2
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusBottomRight: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    10 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: =-1
+            Text: =
+            Visible: =locIsPageLoadingVisible
+            Width: |-
+                =shpPageBackdropCYBS.Width 
+                - (10 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+            X: =Parent.Width/2 - Self.Width/2
+            Y: |-
+                =cmpHeaderCYBS.Y + cmpHeaderCYBS.Height + 
+                Min(30 * Switch(Value(lblScreenWidthSizingCYBS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25, 
+                        ScreenSize.Large, 1.5,
+                        2),
+                    30 * Switch(cmpScreenFunctionsCYBS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25, 
+                        ScreenSize.Large, 1.5,
+                        2)
+                )
+            ZIndex: =9
+
+        imgLoadingPageCYBS As image:
+            DisplayMode: =DisplayMode.View
+            Height: =Self.Width
+            Image: =loading_spinner
+            Visible: =locIsPageLoadingVisible
+            Width: =Min(crdLoadingPageCYBS.Width/2, crdLoadingPageCYBS.Height/3)
+            X: =crdLoadingPageCYBS.X + crdLoadingPageCYBS.Width/2 - Self.Width/2
+            Y: =(crdLoadingPageCYBS.Y + crdLoadingPageCYBS.Height + cmpNavCBS.Height)/2 - Self.Height/2
+            ZIndex: =10
+
+    grpScreenSizingCYBS As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =23
+
+        lblScreenWidthSizingCYBS As label:
+            Height: =0
+            Size: =21
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+            Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+            ZIndex: =5
+
+        cmpScreenFunctionsCYBS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropCYBS.X + shpPageBackdropCYBS.Width
+            Y: =shpPageBackdropCYBS.Y + shpPageBackdropCYBS.Height
+            ZIndex: =6
+

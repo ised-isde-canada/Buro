@@ -1,0 +1,15 @@
+<svg width="16.064" height="17.738" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.a{fill:none;stroke:#626262;stroke-linecap:round;stroke-linejoin:round;}.b{fill:#626262;}</style>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_1">
+   <path id="svg_2" d="m2.174,2.174l11.716,0a1.674,1.674 0 0 1 1.674,1.674l0,11.716a1.674,1.674 0 0 1 -1.674,1.674l-11.716,0a1.674,1.674 0 0 1 -1.674,-1.674l0,-11.716a1.674,1.674 0 0 1 1.674,-1.674z" class="a"/>
+   <path id="svg_3" d="m11.379,0.5l0,3.348" class="a"/>
+   <path id="svg_4" d="m4.684,0.5l0,3.348" class="a"/>
+   <path id="svg_5" d="m0.5,7.195l15.064,0" class="a"/>
+   <path id="svg_6" d="m11.329,11.797l-2.828,0l0,-2.828a0.469,0.469 0 0 0 -0.938,0l0,2.828l-2.828,0a0.469,0.469 0 0 0 0,0.938l2.828,0l0,2.828a0.469,0.469 0 1 0 0.938,0l0,-2.828l2.828,0a0.469,0.469 0 1 0 0,-0.938z" class="b"/>
+  </g>
+ </g>
+</svg>

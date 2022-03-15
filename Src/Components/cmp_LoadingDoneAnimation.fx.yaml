@@ -1,0 +1,51 @@
+cmp_LoadingDoneAnimation As CanvasComponent:
+    DoneLoadingText: ="Chargement terminé"
+    Fill: =RGBA(0, 0, 0, 0)
+    Height: =Self.Width
+    IsTextVisible: =true
+    PrimaryColor: =RGBA(0, 0, 0, 1)
+    Width: =45
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    DoneLoadingText As label:
+        Align: =Align.Center
+        AutoHeight: =true
+        Color: =Color.Black
+        Font: =Font.'Lato Black'
+        Height: =If(DoneLoadingText.Width = DoneLoadingText.Width, (DoneLoadingText.Size * DoneLoadingText.LineHeight + DoneLoadingText.PaddingTop + DoneLoadingText.PaddingBottom), 50)
+        LineHeight: =1
+        Live: =Live.Assertive
+        PaddingBottom: =1
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =1
+        Size: |-
+            =//If(LoadingDoneAnimation.ScreenSize <> "ExtraLarge", 15, 20)
+            0
+        Text: =If(cmp_LoadingDoneAnimation.IsTextVisible, cmp_LoadingDoneAnimation.DoneLoadingText, "")
+        Tooltip: =Self.Text
+        Width: =Min(cmp_LoadingDoneAnimation.Width, DoneLoadingText.Size * Len(DoneLoadingText.Text))
+        X: =(cmp_LoadingDoneAnimation.Width - DoneLoadingText.Width)/2
+        Y: =DoneIcon.Y + DoneIcon.Height + 5
+        ZIndex: =1
+
+    DoneIcon As image:
+        Height: =DoneIcon.Width
+        Image: =checkmark
+        PaddingBottom: =1
+        PaddingLeft: =1
+        PaddingRight: =1
+        PaddingTop: =1
+        Visible: |-
+            =//LoadingDoneAnimation.IsVisible
+            false
+        Width: =45
+        X: =(cmp_LoadingDoneAnimation.Width - DoneIcon.Width)/2
+        Y: |-
+            =//LoadingDoneAnimation.Y
+            //LoadingDoneAnimation.Height/2 - (Self.Height + If(LoadingDoneAnimation.ScreenSize <> "ExtraLarge", 5, (5*1.3)) + DoneLoadingText.Height)/2
+            cmp_LoadingDoneAnimation.Height/2 - Self.Height/2
+        ZIndex: =2
+

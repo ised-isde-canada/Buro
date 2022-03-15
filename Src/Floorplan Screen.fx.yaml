@@ -1,0 +1,513 @@
+"'Floorplan Screen' As screen":
+    OnVisible: |+
+        =UpdateContext(
+            {
+                locIsLoadingVisible: false,
+                locIsPageLoadingVisible: true,
+                locIsDoneLoadingVisible: false,
+                locStartLoadingTimer: false,
+                locStartDoneTimer: false,
+                locLoadingDuration: gblBaseLoadTime,
+                locZoomInVal: 1
+            }
+        );
+        UpdateContext({locStartLoadingTimer:true});
+        
+        //Stop the timer
+        UpdateContext({locLoadingDuration: 1000});
+        
+
+    shpScreenBackdropFPS As rectangle:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.None
+        BorderThickness: =2
+        Fill: =RGBA(224, 224, 224,1)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+    shpPageBackdropFPS As rectangle:
+        BorderColor: =RGBA(204, 204, 204, 1)
+        BorderThickness: =2
+        Fill: =LookUp(Colors, Color = "Background", RGB)
+        FocusedBorderThickness: =4
+        Height: =Parent.Height
+        Width: |
+            =/*Switch(Parent.Size, 
+                ScreenSize.Small, App.Width,
+                ScreenSize.Medium, App.DesignWidth * 1.5,
+                App.DesignWidth * 2
+            )*/
+            If(Parent.Size <> ScreenSize.ExtraLarge, App.Width, App.DesignWidth * 2)
+        X: =(Parent.Width-Self.Width) /2
+        ZIndex: =2
+
+    timLoadingFPS As timer:
+        AutoPause: =false
+        Duration: =locLoadingDuration
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsLoadingVisible: false, locStartLoadingTimer:false});
+            UpdateContext({ locStartDoneTimer:true});
+        OnTimerStart: |-
+            =UpdateContext({locIsLoadingVisible: true});
+        Reset: =true
+        Start: =locStartLoadingTimer
+        TabIndex: =-1
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+        Y: =shpPageBackdropFPS.Y + shpPageBackdropFPS.Height
+        ZIndex: =5
+
+    timDoneLoadingFPS As timer:
+        Duration: =2000
+        Height: =125
+        OnTimerEnd: |-
+            =UpdateContext({locIsDoneLoadingVisible:false, locStartDoneTimer:false});
+        OnTimerStart: |-
+            =UpdateContext({locIsDoneLoadingVisible: true, locIsPageLoadingVisible: false});
+        Reset: =true
+        Start: =locStartDoneTimer
+        TabIndex: =-1
+        Visible: =false
+        Width: =32
+        X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+        Y: =shpPageBackdropFPS.Y + shpPageBackdropFPS.Height
+        ZIndex: =6
+
+    cntrFloorplan As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: |
+            =/*Min(
+                ((shpPageBackdropFPS.Width / imgFloorplanFPS.OriginalWidth) * imgFloorplanFPS.OriginalWidth),
+                (((shpPageBackdropFPS.Height - (HeaderFPS.Y + HeaderFPS.Height + shpZoomBar.Height)) / imgFloorplanFPS.OriginalHeight) * imgFloorplanFPS.OriginalHeight)
+            )*/
+            500 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                    ScreenSize.Small, 0.75,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5, 
+                    1.85)
+        LayoutMode: =LayoutMode.Auto
+        LayoutOverflowX: =LayoutOverflow.Scroll
+        LayoutOverflowY: =LayoutOverflow.Scroll
+        Visible: =!locIsPageLoadingVisible
+        Width: =cmpHeaderFPS.Width
+        X: =cmpHeaderFPS.X
+        Y: |
+            =(shpZoomBar.Y + shpZoomBar.Height) + (shpPageBackdropFPS.Height - (shpZoomBar.Y + shpZoomBar.Height))/2 - Self.Height/2
+        ZIndex: =7
+
+        imgFloorplanFPS As image:
+            AccessibleLabel: =LookUp(colTranslationTable, key = "floorplan.image.description" && language.Value = gblAppUserLang, text) & locSeatName
+            AutoDisableOnSelect: =false
+            CalculateOriginalDimensions: =true
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingFPS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsFPS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Height: |-
+                =((Parent.Height / Self.OriginalHeight) * Self.OriginalHeight) * locZoomInVal
+                //Parent.Height * locZoomInVal
+                //((Parent.Height / Self.OriginalHeight) * 1000) * locZoomInVal
+            Image: =locFloorplanLink
+            LayoutMinHeight: =320
+            LayoutMinWidth: =320
+            TabIndex: =
+            Width: =(Self.OriginalWidth * (Parent.Width / Self.OriginalWidth)) * locZoomInVal
+            ZIndex: =1
+
+    lblFloorplanSectionFPS As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "floorplan.diagramsection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =lblLanguagePreference.X
+        Y: =shpZoomBar.Y + shpZoomBar.Height
+        ZIndex: =8
+
+    shpZoomBar As rectangle:
+        DisplayMode: =DisplayMode.Disabled
+        Fill: =Color.White
+        Height: |
+            =Min(75 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                75 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        Width: =cmpHeaderFPS.Width
+        X: =cmpHeaderFPS.X
+        Y: =cmpHeaderFPS.Y + cmpHeaderFPS.Height
+        ZIndex: =9
+
+    cmpLoadingAnimationFPS As cmp_LoadingAnimation:
+        Height: =cmpHeaderFPS.Height
+        IsTextVisible: =locIsLoadingVisible
+        LoadingText: =LookUp(colTranslationTable, key = "loading.text" && language.Value = gblAppUserLang, text)
+        PrimaryColor: =LookUp(Colors, Color = "Muted Primary", RGB)
+        Visible: =true
+        X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+        Y: =cmpHeaderFPS.Y + cmpHeaderFPS.Height/2 - Self.Height/2
+        ZIndex: =16
+
+    cmpDoneAnimationFPS As cmp_LoadingDoneAnimation:
+        DoneLoadingText: =LookUp(colTranslationTable, key = "loadingdone.text" && language.Value = gblAppUserLang, text)
+        Height: =cmpHeaderFPS.Height
+        IsTextVisible: =locIsDoneLoadingVisible
+        Visible: =true
+        X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+        Y: =cmpHeaderFPS.Y + cmpHeaderFPS.Height/2 - Self.Height/2
+        ZIndex: =17
+
+    lblFloorplanControlsFPS As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: =LookUp(colTranslationTable, key = "floorplan.controlssection" && language.Value = gblAppUserLang, text)
+        Width: =0
+        X: =shpPageBackdropFPS.X
+        Y: =cmpHeaderFPS.Y + cmpHeaderFPS.Height
+        ZIndex: =18
+
+    cmpHeaderFPS As cmp_PageHeading:
+        BackText: =LookUp(colTranslationTable, key = "header.back" && language.Value = gblAppUserLang, text)
+        FocusedColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+        FontSize: |-
+            =Min(22 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2),
+                22 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,
+                    ScreenSize.Large, 1.75,  
+                    2)
+            )
+        HeadingText: =LookUp(colTranslationTable, key = "reviewbooking.header.floorplan" && language.Value = gblAppUserLang, text) & " (" & locSeatName & ")" 
+        Height: |
+            =Min(78 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75),
+                78 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    1.75)
+            )
+        PositionOffset: |-
+            =//Recreates the card offset using non-dependent properties
+            (Parent.Width/2 -
+            (If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+            - (10 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5))
+            - (25 * Switch(Parent.Size,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.5,  
+                    ScreenSize.Large, 1.75,
+                    5)))/2)
+            - shpPageBackdropFPS.X
+        PrimaryColor: =LookUp(Colors, Color = "Primary", RGB)
+        ScreenSize_Height: =cmpScreenFunctionsFPS.ScreenSize
+        ScreenSize_Width: =Value(lblScreenWidthSizingFPS.Text)
+        SecondaryColor: =LookUp(Colors, Color = "Background", RGB)
+        Width: =If(Parent.Size <> ScreenSize.ExtraLarge, App.Width-4, (App.DesignWidth*2)-4)
+        X: =(Parent.Width-Self.Width) /2
+        Y: |-
+            =If(
+            Parent.Size=ScreenSize.Small,
+            2,
+            4
+            )
+        ZIndex: =19
+
+    grpScreenSizingFPS As group:
+        Height: =5
+        Width: =5
+        X: =60
+        Y: =60
+        ZIndex: =21
+
+        cmpScreenFunctionsFPS As cmp_ScreenFunctions:
+            AppHeight: =App.Height
+            AppHeightBreakPoints: =AppHeightBreakpoints
+            X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+            Y: =shpPageBackdropFPS.Y + shpPageBackdropFPS.Height
+            ZIndex: =3
+
+        lblScreenWidthSizingFPS As label:
+            Height: =0
+            Size: =0
+            Text: =Parent.Size
+            Visible: =false
+            Width: =0
+            X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width
+            Y: =shpPageBackdropRS.Y + shpPageBackdropRS.Height
+            ZIndex: =4
+
+    grpPageContentLoading As group:
+        Height: =5
+        Width: =5
+        X: =60
+        Y: =60
+        ZIndex: =22
+
+        crdLoadingPageFPS As button:
+            BorderColor: =LookUp(Colors, Color = "Primary", RGB)
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =(shpScreenBackdropFPS.Y + shpScreenBackdropFPS.Height) - Self.Y
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2),
+                    10 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        2)
+                )
+            RadiusTopRight: =Self.RadiusTopLeft
+            Size: =0
+            TabIndex: =-1
+            Text: =
+            Visible: |
+                =locIsPageLoadingVisible
+            Width: |-
+                =shpPageBackdropFPS.Width
+                - (10 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+                - (25 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,  
+                        ScreenSize.Large, 1.75,
+                        5))
+            X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width/2 - Self.Width/2
+            Y: =shpZoomBar.Y + shpZoomBar.Height + 30 * Switch(Value(lblScreenWidthSizingRS.Text), ScreenSize.Small, 1, ScreenSize.Medium, 1.25, ScreenSize.Large, 1.5, 2)
+            ZIndex: =14
+
+        imgLoadingFloorPlan As image:
+            Height: =Self.Width
+            Image: =loading_spinner
+            Visible: |
+                =locIsPageLoadingVisible
+            Width: |+
+                =Min(crdLoadingPageFPS.Width/2, crdLoadingPageFPS.Height/3)
+                
+            X: =crdLoadingPageFPS.X + crdLoadingPageFPS.Width/2 - Self.Width/2
+            Y: =crdLoadingPageFPS.Y + crdLoadingPageFPS.Height/2 - Self.Height/1.5
+            ZIndex: =15
+
+    grpFloorplanControls As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =25
+
+        icoZoomOutFPS As image:
+            AccessibleLabel: =LookUp(colTranslationTable, key = "floorplan.zoomout" && language.Value = gblAppUserLang, text)
+            BorderColor: =RGBA(0,0,0,0)
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingRS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsRS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Height: |
+                =Min(50 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    50 * Switch(cmpScreenFunctionsRS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverFill: =RGBA(0,0,0,0.1)
+            Image: =zoom_out
+            OnSelect: |-
+                =If(locZoomInVal > 1, UpdateContext({locZoomInVal: locZoomInVal - 0.5}));
+            PaddingBottom: =Self.PaddingTop
+            PaddingLeft: =Self.PaddingTop
+            PaddingRight: =Self.PaddingTop
+            PaddingTop: |-
+                =Min(10 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    10 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedFill: =Self.HoverFill
+            RadiusBottomRight: =Self.RadiusTopRight
+            RadiusTopRight: |-
+                =100 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+            TabIndex: =0
+            Visible: =!locIsLoadingVisible
+            Width: |
+                =Min(65 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    65 * Switch(cmpScreenFunctionsRS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            X: =shpZoomInOutDivider.X + shpZoomInOutDivider.Width
+            Y: =icoZoomInFPS.Y
+            ZIndex: =11
+
+        icoZoomInFPS As image:
+            AccessibleLabel: =LookUp(colTranslationTable, key = "floorplan.zoomin" && language.Value = gblAppUserLang, text)
+            BorderColor: =RGBA(0,0,0,0)
+            Fill: =LookUp(Colors, Color = "Background", RGB)
+            FocusedBorderColor: =LookUp(Colors, Color = "Focus Primary", RGB)
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(Value(lblScreenWidthSizingRS.Text),
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75),
+                    2.5 * Switch(cmpScreenFunctionsRS.ScreenSize,
+                            ScreenSize.Small, 1,
+                            ScreenSize.Medium, 1.25,
+                            ScreenSize.Large, 1.5,
+                            1.75)
+                )
+            Height: |
+                =Min(50 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    50 * Switch(cmpScreenFunctionsRS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverFill: =RGBA(0,0,0,0.1)
+            Image: =zoom_in
+            OnSelect: |-
+                =If(locZoomInVal < 8, UpdateContext({locZoomInVal: locZoomInVal + 0.5}));
+            PaddingBottom: =Self.PaddingTop
+            PaddingLeft: =Self.PaddingTop
+            PaddingRight: =Self.PaddingTop
+            PaddingTop: |
+                =Min(10 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    10 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedFill: =Self.HoverFill
+            RadiusBottomLeft: =Self.RadiusTopLeft
+            RadiusTopLeft: |-
+                =100 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+            TabIndex: =0
+            Visible: =!locIsLoadingVisible
+            Width: |
+                =Min(65 * Switch(Value(lblScreenWidthSizingRS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9),
+                    65 * Switch(cmpScreenFunctionsRS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,  
+                        1.9)
+                    )
+            X: =shpPageBackdropFPS.X + shpPageBackdropFPS.Width - (Self.Width * 2.75)
+            Y: =shpZoomBar.Y + shpZoomBar.Height/2 - Self.Height/2
+            ZIndex: =12
+
+        shpZoomInOutDivider As rectangle:
+            Fill: =LookUp(Colors, Color = "Primary", RGB)
+            Height: =icoZoomInFPS.Height
+            Visible: =!locIsLoadingVisible
+            Width: |-
+                =Min(1 * Switch(Value(lblScreenWidthSizingFPS.Text),  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    1 * Switch(cmpScreenFunctionsFPS.ScreenSize,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )    
+            X: |-
+                =//((icoZoomIn.X + icoZoomIn.Width) + (icoZoomOut.X))/2
+                icoZoomInFPS.X + icoZoomInFPS.Width
+            Y: =icoZoomInFPS.Y
+            ZIndex: =13
+

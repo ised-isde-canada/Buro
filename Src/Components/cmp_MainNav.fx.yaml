@@ -1,0 +1,403 @@
+cmp_MainNav As CanvasComponent:
+    BackgroundColor: =Color.White
+    DisableTabIndex: =false
+    Fill: =RGBA(0, 0, 0, 0)
+    FocusedColor: =RGBA(0, 0, 0, 1)
+    FontSize: =12
+    Height: =107.5
+    IconSize: =100
+    MutedColor: =RGBA(118, 118, 118, 1)
+    NavigateToText: ="Navigate to"
+    NavItems: |-
+        =Table(
+            {
+                Key: "profile",
+                Label: "My_Profile",
+                NavigationLink: App.ActiveScreen
+            },
+            {
+                Key: "newBooking",
+                Label: "Book_A_Seat",
+                NavigationLink: App.ActiveScreen
+            },
+            {
+                Key: "bookings",
+                Label: "My_Bookings",
+                NavigationLink: App.ActiveScreen
+            }
+        )
+    PrimaryColor: =RGBA(48, 36, 80, 1)
+    ScreenSize_Height: =1
+    ScreenSize_Width: =1
+    SelectedItem: =""
+    Width: =640
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    htmlCard As htmlViewer:
+        AutoHeight: =true
+        DisplayMode: =DisplayMode.View
+        Height: =cmp_MainNav.Height
+        HtmlText: |-
+            ="<div style='overflow: hidden; margin-top:12px; height:" & Parent.Height - btnProfileAccessibilityBox.Y & "px; background-color:#ffffff; box-shadow:0px 0px 8px 0px #ccc; border-radius:" & 
+            Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2),
+                20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2)
+            ) & "px " & 
+            Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2),
+                20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                    ScreenSize.Small, 1,  
+                    ScreenSize.Medium, 1.25,
+                    ScreenSize.Large, 1.5,  
+                    2)
+            ) & "px 0px 0px;'></div>"
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =0
+        Size: |
+            =0
+        Width: =cmp_MainNav.Width
+        ZIndex: =1
+
+    lblNavigationHeading As label:
+        Height: =0
+        Role: =TextRole.Heading2
+        Size: =0
+        Text: ="Navigation Bar"
+        Width: =0   
+        ZIndex: =11
+
+    BookBtn As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =12
+
+        lblBookSeat As label:
+            Align: =Align.Center
+            AutoHeight: =true
+            Color: =If(cmp_MainNav.SelectedItem="newBooking", cmp_MainNav.PrimaryColor , cmp_MainNav.MutedColor)
+            Font: =Font.Lato
+            FontWeight: =FontWeight.Bold
+            Height: =50
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "newBooking", NavigationLink))
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =cmp_MainNav.FontSize
+            Text: =LookUp(cmp_MainNav.NavItems, Key = "newBooking", Label)
+            Tooltip: =
+            Width: =btnBookAccessibilityBox.Width
+            X: =((Parent.Width/5)*2.5)-(lblBookSeat.Width/2)
+            Y: |
+                =imgBookSeat.Y + imgBookSeat.Height +
+                Min(7 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    7 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            ZIndex: =4
+
+        imgBookSeat As image:
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            Height: |
+                =Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            HoverFill: =
+            Image: =If(cmp_MainNav.SelectedItem="newBooking", 'book_a_seat (purple)' , 'book_a_seat (grey)')
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "newBooking", NavigationLink))
+            PressedFill: =
+            Width: =Self.Height
+            X: =((Parent.Width/5)*2.5)-(imgBookSeat.Width/2)
+            Y: =imgProfile.Y
+            ZIndex: =5
+
+        btnBookAccessibilityBox As button:
+            AutoDisableOnSelect: =false
+            BorderThickness: =0
+            Color: =RGBA(0,0,0,0)
+            Fill: =RGBA(0,0,0,0)
+            FocusedBorderColor: =cmp_MainNav.FocusedColor
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(cmp_MainNav.ScreenSize_Width,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmp_MainNav.ScreenSize_Height,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Height: =Parent.Height - Self.Y
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =RGBA(0,0,0,0.05)
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "newBooking", NavigationLink))
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedColor: =Self.Color
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Size: =0
+            Text: =LookUp(cmp_MainNav.NavItems, Key = "newBooking", Label)
+            Width: =htmlCard.Width/4
+            X: =((Parent.Width/5)*2.5)-(Self.Width/2)
+            Y: =12
+            ZIndex: =9
+
+    BookingsBtn As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =12
+
+        lblBookings As label:
+            Align: =Align.Center
+            AutoHeight: =true
+            Color: =If(cmp_MainNav.SelectedItem="bookings", cmp_MainNav.PrimaryColor , cmp_MainNav.MutedColor) 
+            Font: =Font.Lato
+            FontWeight: =FontWeight.Bold
+            Height: =50
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "bookings", NavigationLink))
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =cmp_MainNav.FontSize
+            Text: =LookUp(cmp_MainNav.NavItems, Key = "bookings", Label)
+            Width: =btnBookingsAccessibilityBox.Width
+            X: =((Parent.Width/5)*4)-(lblBookings.Width/2)
+            Y: |-
+                =imgBookings.Y + imgBookings.Height + 
+                Min(7 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    7 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            ZIndex: =2
+
+        imgBookings As image:
+            DisabledBorderColor: =
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            Height: |
+                =Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            HoverBorderColor: =
+            HoverFill: =
+            Image: =If(cmp_MainNav.SelectedItem="bookings", 'my_bookings (purple)' , 'my_bookings (grey)')
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "bookings", NavigationLink))
+            PressedBorderColor: =
+            PressedFill: =
+            Visible: |-
+                =//If(MainNav.SelectedItem="reservations", true , false) 
+                true
+            Width: =Self.Height
+            X: =((Parent.Width/5)*4)-(imgBookings.Width/2)
+            Y: =imgProfile.Y
+            ZIndex: =3
+
+        btnBookingsAccessibilityBox As button:
+            AutoDisableOnSelect: =false
+            BorderThickness: =0
+            Color: =RGBA(0,0,0,0)
+            Fill: =RGBA(0,0,0,0)
+            FocusedBorderColor: =cmp_MainNav.FocusedColor
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(cmp_MainNav.ScreenSize_Width,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmp_MainNav.ScreenSize_Height,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Height: =Parent.Height - Self.Y
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =RGBA(0,0,0,0.05)
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "bookings", NavigationLink))
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedColor: =Self.Color
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Size: =0
+            Text: =LookUp(cmp_MainNav.NavItems, Key = "bookings", Label)
+            Width: =htmlCard.Width/4
+            X: =((Parent.Width/5)*4)-(Self.Width/2)
+            Y: =12.5
+            ZIndex: =8
+
+    ProfileBtn As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =12
+
+        lblProfile As label:
+            Align: =Align.Center
+            AutoHeight: =true
+            Color: =If(cmp_MainNav.SelectedItem="profile", cmp_MainNav.PrimaryColor , cmp_MainNav.MutedColor) 
+            Font: =Font.Lato
+            FontWeight: =FontWeight.Bold
+            Height: =0
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "profile", NavigationLink))
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =cmp_MainNav.FontSize
+            Text: |-
+                =LookUp(
+                    cmp_MainNav.NavItems,
+                    Key = "profile",
+                    Label
+                )
+            Width: |-
+                =//shpProfileAccessibilityBox.Width
+                Min(btnProfileAccessibilityBox.Width, Len(LookUp(cmp_MainNav.NavItems, Key = "profile", Label)) * Self.Size)
+            X: =(Parent.Width/5)-(lblProfile.Width/2)
+            Y: |
+                =imgProfile.Y + imgProfile.Height + 
+                Min(7 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    7 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            ZIndex: =6
+
+        imgProfile As image:
+            FocusedBorderThickness: =0
+            Height: |
+                =Min(20 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    20 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            Image: =If(cmp_MainNav.SelectedItem="profile", 'my_profile (purple)' , 'my_profile (grey)')
+            Width: =htmlCard.Width/4
+            X: =(Parent.Width/5)-(imgProfile.Width/2)
+            Y: |-
+                =(Parent.Height - btnProfileAccessibilityBox.Y)/2 - Self.Height + 
+                Min(7 * Switch(cmp_MainNav.ScreenSize_Width,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2),
+                    7 * Switch(cmp_MainNav.ScreenSize_Height,  
+                        ScreenSize.Small, 1,  
+                        ScreenSize.Medium, 1.5,
+                        ScreenSize.Large, 1.75,  
+                        2)
+                )
+            ZIndex: =7
+
+        btnProfileAccessibilityBox As button:
+            BorderThickness: =0
+            Color: =RGBA(0,0,0,0)
+            Fill: =RGBA(0,0,0,0)
+            FocusedBorderColor: =cmp_MainNav.FocusedColor
+            FocusedBorderThickness: |-
+                =Min(2.5 * Switch(cmp_MainNav.ScreenSize_Width,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75),
+                    2.5 * Switch(cmp_MainNav.ScreenSize_Height,
+                        ScreenSize.Small, 1,
+                        ScreenSize.Medium, 1.25,
+                        ScreenSize.Large, 1.5,
+                        1.75)
+                )
+            Height: =Parent.Height - Self.Y
+            HoverBorderColor: =RGBA(0,0,0,0)
+            HoverColor: =Self.Color
+            HoverFill: =RGBA(0,0,0,0.05)
+            OnSelect: =Navigate(LookUp(cmp_MainNav.NavItems, Key = "profile", NavigationLink))
+            PressedBorderColor: =RGBA(0,0,0,0)
+            PressedColor: =Self.Color
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Size: =0
+            Text: |-
+                =LookUp(
+                    cmp_MainNav.NavItems,
+                    Key = "profile",
+                    Label
+                )
+            Width: =htmlCard.Width/4
+            X: =(Parent.Width/5)-(Self.Width/2)
+            Y: =12
+            ZIndex: =10
+

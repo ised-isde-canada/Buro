@@ -1,0 +1,20 @@
+"'4a9c430f-723f-4428-8023-33e686128fae' As TestSuite":
+    Description: =""
+    DisplayName: |-
+        ="Suite: Initialize User If Not Initialized"
+
+    "'34fbf7b5-7bc4-4cc2-aa56-6d8288225347' As TestCase":
+        Description: ="Creates a record in the database for the current user running the tests (if not already present) and gives them testing privileges"
+        DisplayName: ="Enable Tester Privileges"
+
+        Step1 As TestStep:
+            Description: ="Find the current user in the Users table, if there, and give them tester privileges, if not there add them to the table"
+            Screen: =Test Screen-NotVisible
+            Value: |-
+                =With(LookUp(Users, user_email = Lower(gblAppUserDetails.mail)),
+                 If(IsBlankOrError(ThisRecord),
+                    Patch(Users, Defaults(Users), { user_email: Lower(User().Email),
+                    language: {'@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",Value: "English"}, tester: true }),
+                    Patch(Users, ThisRecord, { tester: true }))
+                 )
+
