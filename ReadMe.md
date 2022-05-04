@@ -23,22 +23,11 @@ Buro supports both English and French. Accessibility testing and usability tests
 
 Data is stored using sharepoint lists. This includes booking data and room information. 
 
-# Architectural Diagram
-
-Please see the [Support Model Agreement]() for the most up to date architectural diagram 
-
-# Database Diagram
-
-[Database diagram](https://033gc-my.sharepoint.com/personal/ian_wilkinson_ised-isde_gc_ca/Documents/BookingAppDB%20%5B2021-07-14%5D.png) and [database link](https://033gc.sharepoint.com/sites/OfficeReservationDBV05/)
-
-
-*Note: Privileges to the database may be given upon request*
-
 # SharePoint Tables and Necessary Table Structures
 
 ## Users Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|user_email|Yes|
 |Choice|language|Yes|
@@ -47,14 +36,14 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Regions Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|region_name_en|Yes|
 |Single line of text|region_name_fr|Yes|
 
 ## Desks Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|desk_name_en|Yes|
 |Single line of text|desk_name_fr|Yes|
@@ -69,7 +58,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Buildings Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|building_add_en|Yes|
 |Single line of text|building_add_fr|Yes|
@@ -83,7 +72,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Floors Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|floor_name_en|Yes|
 |Single line of text|floor_name_fr|Yes|
@@ -91,7 +80,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Neighbourhoods Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|neighbourhood_name_en|Yes|
 |Single line of text|neighbourhood_name_fr|Yes|
@@ -99,7 +88,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Neighbourhoods Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|desk_name_en|Yes|
 |Single line of text|desk_name_fr|Yes|
@@ -114,7 +103,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## SeatingArrangements Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|seating_arrangement_name_en|Yes|
 |Single line of text|seating_arrangement_name_fr|Yes|
@@ -122,7 +111,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## SeatingTypes Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|seating_type_name_en|Yes|
 |Single line of text|seating_type_name_fr|Yes|
@@ -132,7 +121,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Timeslots Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|time_range_en|Yes|
 |Single line of text|time_range_fr|Yes|
@@ -143,7 +132,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Reservations Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|user_email|No|
 |Single line of text|proxy_user_email|No|
@@ -154,7 +143,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## ExternalErrors Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Single line of text|user_email|Yes|
 |Number|error_code|No|
@@ -164,7 +153,7 @@ Please see the [Support Model Agreement]() for the most up to date architectural
 
 ## Translations Table
 
-|Type|Internal Name|Required|
+|Type|Column|Required|
 |---|---|:---:|
 |Multiple lines of text|key|Yes|
 |Multiple lines of text|text|Yes|
@@ -651,7 +640,7 @@ For further information on the PowerApps Language Tooling read the documentation
 
 8. If the process successfully extracted your app's source files they should now appear in the output folder you specified
 
-9. These source files can now be added to the [Buro repository](https://asbscr.ic.gc.ca/scm/projects/CMSCORS/repos/cms---office-reservation-application/browse)
+9. These source files can now be added to your repository
 
 
 ## PowerApps Source Files to MSAPP Flow:
@@ -660,7 +649,7 @@ In order to use the source files from our repository on the [PowerApps wesbite](
 
 1. Open Visual Studio
 2. Open the Visual Studio Terminal
-3. Locate the directory on your computer that you have the Buro source files cloned from the [Buro repository](https://asbscr.ic.gc.ca/scm/projects/CMSCORS/repos/cms---office-reservation-application/browse)
+3. Locate the directory on your computer that you have the Buro source files cloned from this repository
 
 4. In the terminal, from step 2, we'll construct the bundling command
 
