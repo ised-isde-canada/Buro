@@ -28,7 +28,7 @@ For further information on the PowerApps Language Tooling read the documentation
 
 ## Steps to extract source files from a PowerApp:
 
-1. Navigate to the [PowerApps wesbite](make.powerapps.com) and click on the Apps section
+1. Navigate to the [PowerApps wesbite](https://make.powerapps.com) and click on the Apps section
 2. On the app you'd like to integrate source control into, click the "..." three ellipses and click "Edit"
 3. Once the app has loaded in PowerApps Studio, click **File > Save As > This computer > Download**
 
@@ -55,7 +55,7 @@ For further information on the PowerApps Language Tooling read the documentation
 
 ## Steps to import source files into a PowerApp:
 
-In order to use the source files from our repository on the [PowerApps wesbite](make.powerapps.com) we must convert our source files to a .msapp file. This is essentially the reverse process that we followed in the [previous section](#powerapps-source-file-extraction-flow) 
+In order to use the source files from our repository on the [PowerApps wesbite](https://make.powerapps.com) we must convert our source files to a .msapp file. This is essentially the reverse process that we followed in the [previous section](#powerapps-source-file-extraction-flow) 
 
 1. Open Visual Studio
 2. Open the Visual Studio Terminal
