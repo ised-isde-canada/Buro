@@ -1,9 +1,0 @@
-[
-  {
-    "IsComponentScoped": false,
-    "IsSampleData": false,
-    "IsWritable": true,
-    "Name": "colReview_FoundRecords",
-    "Type": "CollectionDataSourceInfo"
-  }
-]

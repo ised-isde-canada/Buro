@@ -1,0 +1,4 @@
+ID,time_range_en,time_range_fr,start_time,start_time_in_min,end_time,end_time_in_min
+1,A.M. (Before 12 P.M.),a.m. (avant 12 h),12:00,0,11:59,719
+2,P.M. (After 12 P.M.),p.m. (après 12 h),12:00,720,11:59,"1,439"
+3,All Day,Journée complète,12:00,0,11:59,"1,439"

@@ -1,0 +1,459 @@
+<?xml version="1.0"?>
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2020/02/ProvisioningSchema">
+  <pnp:Preferences Generator="OfficeDevPnP.Core, Version=3.28.2012.0, Culture=neutral, PublicKeyToken=5e633289e95c321a" />
+  <pnp:Templates ID="CONTAINER-TEMPLATE-C39F9ED629BE435C82A73F1867336D48">
+    <pnp:ProvisioningTemplate ID="TEMPLATE-C39F9ED629BE435C82A73F1867336D48" Version="1" BaseSiteTemplate="GROUP#0" Scope="RootSite">
+      <pnp:Lists>
+        <pnp:ListInstance Title="Buildings" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Locations" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Locations/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Locations/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Locations/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{713480DB-27AC-45FF-9FB5-F3313CE84FE1}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Locations/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="building_add_en" />
+                <FieldRef Name="building_add_fr" />
+                <FieldRef Name="building_name_en" />
+                <FieldRef Name="building_name_fr" />
+                <FieldRef Name="city" />
+                <FieldRef Name="province" />
+                <FieldRef Name="postal_code" />
+                <FieldRef Name="region_id" />
+                <FieldRef Name="region_id_x003a_region_name_en" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="city" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="city" Title="city" Type="Text" ID="{266a1ebc-d2bd-4626-8a10-67c5463d5471}" SourceID="{{listid:Buildings}}" StaticName="city" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="province" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="province" Title="province" Type="Text" ID="{331761dc-6278-4c47-b415-29a749f0f277}" SourceID="{{listid:Buildings}}" StaticName="province" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="postal_code" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="postal_code" Title="postal_code" Type="Text" ID="{e4c62d50-0b28-4321-a0ee-62b78a4be772}" SourceID="{{listid:Buildings}}" StaticName="postal_code" ColName="nvarchar6" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="building_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="building_name_en" Title="building_name_en" Type="Text" ID="{59d42197-a974-45d9-93b9-086340a2e9f4}" SourceID="{{listid:Buildings}}" StaticName="building_name_en" ColName="nvarchar7" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="building_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="building_name_fr" Title="building_name_fr" Type="Text" ID="{4b909a65-61fa-4ea9-9532-c80adff96220}" SourceID="{{listid:Buildings}}" StaticName="building_name_fr" ColName="nvarchar8" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="building_add_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="building_add_en" Title="building_add_en" Type="Text" ID="{0fb265d9-96a6-4ea4-9a5e-2ca6c16d1914}" SourceID="{{listid:Buildings}}" StaticName="building_add_en" ColName="nvarchar9" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="building_add_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="building_add_fr" Title="building_add_fr" Type="Text" ID="{55a040cf-07c7-4e6c-9df9-5e63be7fca98}" SourceID="{{listid:Buildings}}" StaticName="building_add_fr" ColName="nvarchar10" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field Type="Lookup" DisplayName="region_id" Required="TRUE" EnforceUniqueValues="FALSE" List="{listid:Regions}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" ID="{5b59fbda-bd26-4b19-a301-d226fdc26239}" SourceID="{{listid:Buildings}}" StaticName="region_id" Name="region_id" ColName="int1" RowOrdinal="0" Group="" Version="2" />
+            <Field Type="Lookup" DisplayName="region_id:region_name_en" List="{listid:Regions}" WebId="{siteid}" ShowField="region_name_en" FieldRef="5b59fbda-bd26-4b19-a301-d226fdc26239" ReadOnly="TRUE" UnlimitedLengthInDocumentLibrary="FALSE" ID="{9ebf8b83-0abd-401a-92be-8a05b307bec4}" SourceID="{{listid:Buildings}}" StaticName="region_id_x003a_region_name_en" Name="region_id_x003a_region_name_en" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Desks" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Desks" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Desks/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Desks/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Desks/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{8D327890-6E7C-4C13-B069-FB8467918C7C}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Desks/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="desk_name_en" />
+                <FieldRef Name="desk_name_fr" />
+                <FieldRef Name="status" />
+                <FieldRef Name="building_id" />
+                <FieldRef Name="neighbourhood_id" />
+                <FieldRef Name="seating_type_id" />
+                <FieldRef Name="seating_arrangement_id" />
+                <FieldRef Name="workstation_specifics" />
+                <FieldRef Name="desk_floor_plan_url" />
+                <FieldRef Name="desk_image" />
+                <FieldRef Name="building_id_x003a__x0020_buildin" />
+                <FieldRef Name="neighbourhood_id_x003a__x0020_ne" />
+                <FieldRef Name="seating_type_id_x003a__x0020_sea" />
+                <FieldRef Name="seating_arrangement_id_x003a__x00" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">200</RowLimit>
+              <Aggregations Value="Off" />
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+              <ViewData />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="desk_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="desk_name_fr" Title="desk_name_fr" Type="Text" ID="{5bdec0df-a6f6-4671-874f-a4bc2a5866f6}" SourceID="{{listid:Desks}}" StaticName="desk_name_fr" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field CustomFormatter="{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;flex-wrap&quot;:&quot;wrap&quot;,&quot;display&quot;:&quot;flex&quot;},&quot;children&quot;:[{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;box-sizing&quot;:&quot;border-box&quot;,&quot;padding&quot;:&quot;4px 8px 5px 8px&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;border-radius&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;24px&quot;,&quot;align-items&quot;:&quot;center&quot;,&quot;white-space&quot;:&quot;nowrap&quot;,&quot;overflow&quot;:&quot;hidden&quot;,&quot;margin&quot;:&quot;4px 4px 4px 4px&quot;},&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;ACTIVE&quot;]},&quot;sp-css-backgroundColor-blueBackground37&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;INACTIVE&quot;]},&quot;sp-css-backgroundColor-successBackground50&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-neutralSecondary&quot;]}]}]}},&quot;children&quot;:[{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;line-height&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;14px&quot;},&quot;attributes&quot;:{&quot;iconName&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;ACTIVE&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;INACTIVE&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;&quot;]}]}]}}},{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;overflow&quot;:&quot;hidden&quot;,&quot;text-overflow&quot;:&quot;ellipsis&quot;,&quot;padding&quot;:&quot;0 3px&quot;},&quot;txtContent&quot;:&quot;@currentField&quot;,&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;ACTIVE&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;INACTIVE&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;&quot;]}]}]}}}]}],&quot;templateId&quot;:&quot;BgColorChoicePill&quot;}" DisplayName="status" FillInChoice="FALSE" Format="Dropdown" IsModern="TRUE" Name="status" Title="status" Type="Choice" ID="{f0354524-1db5-40a5-b4d0-83c7ee31c533}" SourceID="{{listid:Desks}}" StaticName="status" ColName="nvarchar5" RowOrdinal="0" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1">
+              <CHOICES>
+                <CHOICE>ACTIVE</CHOICE>
+                <CHOICE>INACTIVE</CHOICE>
+              </CHOICES>
+            </Field>
+            <Field DisplayName="desk_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="desk_name_en" Title="desk_name_en" Type="Text" ID="{99b39dc2-c255-410c-a424-6e24cef91284}" SourceID="{{listid:Desks}}" StaticName="desk_name_en" ColName="nvarchar6" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field Type="URL" DisplayName="desk_image" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Format="Image" ID="{51eab20f-b866-4f0c-b83d-57f70b9648f5}" SourceID="{{listid:Desks}}" StaticName="desk_image" Name="desk_image" ColName="nvarchar7" RowOrdinal="0" ColName2="nvarchar8" RowOrdinal2="0" CustomFormatter="" Version="4" />
+            <Field Type="URL" DisplayName="desk_floor_plan_url" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Format="Image" ID="{efab88f8-7e40-4645-8169-d96d45162d0d}" SourceID="{{listid:Desks}}" StaticName="desk_floor_plan_url" Name="desk_floor_plan_url" ColName="nvarchar9" RowOrdinal="0" ColName2="nvarchar10" RowOrdinal2="0" CustomFormatter="" Version="1" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" CustomFormatter="{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;flex-wrap&quot;:&quot;wrap&quot;,&quot;display&quot;:&quot;flex&quot;},&quot;children&quot;:[{&quot;forEach&quot;:&quot;__INTERNAL__ in @currentField&quot;,&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;box-sizing&quot;:&quot;border-box&quot;,&quot;padding&quot;:&quot;4px 8px 5px 8px&quot;,&quot;overflow&quot;:&quot;hidden&quot;,&quot;text-overflow&quot;:&quot;ellipsis&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;border-radius&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;24px&quot;,&quot;align-items&quot;:&quot;center&quot;,&quot;white-space&quot;:&quot;nowrap&quot;,&quot;margin&quot;:&quot;4px 4px 4px 4px&quot;},&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$__INTERNAL__]&quot;,&quot;Accessible | Accessible &quot;]},&quot;sp-css-backgroundColor-BgCornflowerBlue sp-css-color-CornflowerBlueFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$__INTERNAL__]&quot;,&quot;Accessible | Accessible&quot;]},&quot;sp-css-backgroundColor-BgCornflowerBlue sp-css-borderColor-CornflowerBlueFont sp-css-color-CornflowerBlueFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$__INTERNAL__]&quot;,&quot;GCSI | ISGC&quot;]},&quot;sp-css-backgroundColor-BgMintGreen sp-css-color-MintGreenFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$__INTERNAL__]&quot;,&quot;High Power | Haute puissance&quot;]},&quot;sp-css-backgroundColor-BgGold sp-css-borderColor-GoldFont sp-css-color-GoldFont&quot;,&quot;sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-neutralSecondary&quot;]}]}]}]}},&quot;txtContent&quot;:&quot;[$__INTERNAL__]&quot;}],&quot;rulesOrder&quot;:[1,2,4],&quot;templateId&quot;:&quot;BgColorChoicePill&quot;}" DisplayName="workstation_specifics" FillInChoice="FALSE" Format="Dropdown" Name="workstation_specifics" Title="workstation_specifics" Type="MultiChoice" ID="{f943bcdc-9b4d-4830-b888-09110a3e804b}" Version="14" StaticName="workstation_specifics" SourceID="{{listid:Desks}}" ColName="ntext2" RowOrdinal="0">
+              <CHOICES>
+                <CHOICE>Accessible | Accessible</CHOICE>
+                <CHOICE>GCSI | ISGC</CHOICE>
+                <CHOICE>High Power | Haute puissance</CHOICE>
+              </CHOICES>
+            </Field>
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="neighbourhood_id" Format="Dropdown" Indexed="FALSE" List="{listid:Neighbourhoods}" Name="neighbourhood_id" Required="TRUE" ShowField="ID" Title="neighbourhood_id" Type="Lookup" ID="{cf84748c-f696-4ac6-ba42-f5b5a2d09d85}" Version="10" StaticName="neighbourhood_id" SourceID="{{listid:Desks}}" ColName="int1" RowOrdinal="0" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="seating_arrangement_id" Format="Dropdown" Indexed="FALSE" List="{listid:SeatingArrangements}" Name="seating_arrangement_id" Required="TRUE" ShowField="ID" Title="seating_arrangement_id" Type="Lookup" ID="{f36a26a3-cc8e-452c-be9a-dd0353f084b5}" Version="6" StaticName="seating_arrangement_id" SourceID="{{listid:Desks}}" ColName="int2" RowOrdinal="0" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="seating_type_id" Format="Dropdown" Indexed="FALSE" List="{listid:SeatingTypes}" Name="seating_type_id" Required="TRUE" ShowField="ID" Title="seating_type_id" Type="Lookup" ID="{39a3b253-66a3-4711-bc37-d4e51794c61d}" Version="6" StaticName="seating_type_id" SourceID="{{listid:Desks}}" ColName="int3" RowOrdinal="0" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="building_id" Format="Dropdown" Indexed="FALSE" List="{listid:Buildings}" Name="building_id" Required="TRUE" ShowField="ID" Title="building_id" Type="Lookup" ID="{6f6536a8-042d-46a2-b411-0b9f2aa36f71}" Version="6" StaticName="building_id" SourceID="{{listid:Desks}}" ColName="int4" RowOrdinal="0" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="building_id: building_name_en" FieldRef="6f6536a8-042d-46a2-b411-0b9f2aa36f71" Format="Dropdown" IsModern="TRUE" List="{listid:Buildings}" Name="building_id_x003a__x0020_buildin" Required="TRUE" ShowField="building_name_en" Title="building_id: building_name_en" Type="Lookup" ID="{bf668f71-f06c-4529-96da-580a376458a0}" SourceID="{{listid:Desks}}" StaticName="building_id_x003a__x0020_buildin" ReadOnly="TRUE" Version="1" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="neighbourhood_id: neighbourhood_name_en" FieldRef="cf84748c-f696-4ac6-ba42-f5b5a2d09d85" Format="Dropdown" IsModern="TRUE" List="{listid:Neighbourhoods}" Name="neighbourhood_id_x003a__x0020_ne" Required="TRUE" ShowField="neighbourhood_name_en" Title="neighbourhood_id: neighbourhood_name_en" Type="Lookup" ID="{e8750211-97ad-4417-b189-dff74e14e12f}" SourceID="{{listid:Desks}}" StaticName="neighbourhood_id_x003a__x0020_ne" ReadOnly="TRUE" Version="1" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="seating_type_id: seating_type_name_en" FieldRef="39a3b253-66a3-4711-bc37-d4e51794c61d" Format="Dropdown" IsModern="TRUE" List="{listid:SeatingTypes}" Name="seating_type_id_x003a__x0020_sea" Required="TRUE" ShowField="seating_type_name_en" Title="seating_type_id: seating_type_name_en" Type="Lookup" ID="{d42f23e5-7b3c-4734-ad40-6b59acfd013b}" SourceID="{{listid:Desks}}" StaticName="seating_type_id_x003a__x0020_sea" ReadOnly="TRUE" Version="1" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="seating_arrangement_id: seating_arrangement_name_en" FieldRef="f36a26a3-cc8e-452c-be9a-dd0353f084b5" Format="Dropdown" IsModern="TRUE" List="{listid:SeatingArrangements}" Name="seating_arrangement_id_x003a__x00" Required="TRUE" ShowField="seating_arrangement_name_en" Title="seating_arrangement_id: seating_arrangement_name_en" Type="Lookup" ID="{08333c5c-d0cf-4cf1-b245-00c809c0881c}" SourceID="{{listid:Desks}}" StaticName="seating_arrangement_id_x003a__x00" ReadOnly="TRUE" Version="1" />
+          </pnp:Fields>
+          <pnp:Webhooks>
+            <pnp:Webhook ServerNotificationUrl="https://canadaeast1-0.pushnp.svc.ms/notifications?token=b3918c83-20e5-4da5-8e51-55fd9e8adbf9" ExpiresInDays="1" />
+          </pnp:Webhooks>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="ExternalErrors" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/ExternalErrors" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/ExternalErrors/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/ExternalErrors/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/ExternalErrors/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:PropertyBagEntries>
+            <pnp:PropertyBagEntry Key="wte_Source" Value="https://033gc.sharepoint.com/sites/OfficeReservationDBV05/Lists/Errors/AllItems.aspx" Overwrite="false" />
+          </pnp:PropertyBagEntries>
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{B71BBAB6-5753-4609-B317-FC04EAF04B15}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/ExternalErrors/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="user_email" />
+                <FieldRef Name="error_code" />
+                <FieldRef Name="error_message" />
+                <FieldRef Name="error_log" />
+                <FieldRef Name="error_origin" />
+                <FieldRef Name="Created" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="user_email" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="user_email" Title="user_email" Type="Text" ID="{e2de87e9-3a5f-4fbc-ad92-61b2c57262ad}" StaticName="user_email" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" ColName="nvarchar4" RowOrdinal="0" SourceID="{{listid:ExternalErrors}}" />
+            <Field CommaSeparator="TRUE" CustomUnitOnRight="TRUE" Decimals="0" Description="PowerApps Error Code https://docs.microsoft.com/en-us/powerapps/maker/canvas-apps/functions/function-errors" DisplayName="error_code" Format="Dropdown" IsModern="TRUE" Name="error_code" Percentage="FALSE" Title="error_code" Type="Number" Unit="None" ID="{c82aa52d-a37f-4b7e-b274-ad499c333f9b}" StaticName="error_code" ColName="float1" RowOrdinal="0" SourceID="{{listid:ExternalErrors}}" />
+            <Field AppendOnly="FALSE" DisplayName="error_log" Format="Dropdown" IsModern="TRUE" IsolateStyles="FALSE" Name="error_log" RichText="FALSE" RichTextMode="Compatible" Title="error_log" Type="Note" ID="{3b287847-ffa9-4139-91c1-f9052400f0ed}" StaticName="error_log" ColName="ntext2" RowOrdinal="0" SourceID="{{listid:ExternalErrors}}" />
+            <Field DisplayName="error_origin" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="error_origin" Title="error_origin" Type="Text" ID="{aba1f389-a399-4f99-b05f-93772f3865a2}" StaticName="error_origin" ColName="nvarchar5" RowOrdinal="0" SourceID="{{listid:ExternalErrors}}" />
+            <Field AppendOnly="FALSE" DisplayName="error_message" Format="Dropdown" IsModern="TRUE" IsolateStyles="FALSE" Name="error_message" RichText="FALSE" RichTextMode="Compatible" Title="error_message" Type="Note" ID="{8e478060-ebe1-4cc4-8d6a-f1ae7c2ea981}" StaticName="error_message" ColName="ntext3" RowOrdinal="0" SourceID="{{listid:ExternalErrors}}" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Floors" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Floors" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Floors/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Floors/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Floors/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{25D6647F-6395-4864-94E4-256F605954F4}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Floors/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="floor_name_en" />
+                <FieldRef Name="floor_name_fr" />
+                <FieldRef Name="building_id" />
+                <FieldRef Name="building_id_x003a_building_name_" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="floor_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="floor_name_en" Title="floor_name_en" Type="Text" ID="{7200abb5-e8f6-48d2-90a8-858fd8ca7081}" SourceID="{{listid:Floors}}" StaticName="floor_name_en" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="floor_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="floor_name_fr" Title="floor_name_fr" Type="Text" ID="{46b2f0c5-3e16-4e13-a5b9-fb96cc091987}" SourceID="{{listid:Floors}}" StaticName="floor_name_fr" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field Type="Lookup" DisplayName="building_id" Required="TRUE" EnforceUniqueValues="FALSE" List="{listid:Buildings}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" ID="{1c021bd1-8478-4cbb-ae3c-606af8a4e06a}" SourceID="{{listid:Floors}}" StaticName="building_id" Name="building_id" ColName="int1" RowOrdinal="0" Group="" Version="1" />
+            <Field Type="Lookup" DisplayName="building_id:building_name_en" List="{listid:Buildings}" WebId="{siteid}" ShowField="building_name_en" FieldRef="1c021bd1-8478-4cbb-ae3c-606af8a4e06a" ReadOnly="TRUE" UnlimitedLengthInDocumentLibrary="FALSE" ID="{2a1af29f-1eec-4ac4-aad8-86bfafdd3c67}" SourceID="{{listid:Floors}}" StaticName="building_id_x003a_building_name_" Name="building_id_x003a_building_name_" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Neighbourhoods" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Neighbourhoods" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Neighbourhoods/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Neighbourhoods/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Neighbourhoods/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{84195C03-9DE6-4375-83FE-8BFDCFC84F8C}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Neighbourhoods/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="neighbourhood_name_fr" />
+                <FieldRef Name="neighbourhood_name_en" />
+                <FieldRef Name="floor_id" />
+                <FieldRef Name="floor_id_x003a_floor_name_en" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="neighbourhood_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="neighbourhood_name_en" Title="neighbourhood_name_en" Type="Text" ID="{a9a2bcea-2904-4548-9471-55f5ceb18d0d}" SourceID="{{listid:Neighbourhoods}}" StaticName="neighbourhood_name_en" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="neighbourhood_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="neighbourhood_name_fr" Title="neighbourhood_name_fr" Type="Text" ID="{a4a9ffd8-aec6-484d-9219-641ae4c1b4c1}" SourceID="{{listid:Neighbourhoods}}" StaticName="neighbourhood_name_fr" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field Type="Lookup" DisplayName="floor_id" Required="TRUE" EnforceUniqueValues="FALSE" List="{listid:Floors}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" ID="{d1d807f2-c3e8-4d1e-9589-bcf13f5c2ac1}" SourceID="{{listid:Neighbourhoods}}" StaticName="floor_id" Name="floor_id" ColName="int1" RowOrdinal="0" Group="" Version="2" />
+            <Field Type="Lookup" DisplayName="floor_id:floor_name_en" List="{listid:Floors}" WebId="{siteid}" ShowField="floor_name_en" FieldRef="d1d807f2-c3e8-4d1e-9589-bcf13f5c2ac1" ReadOnly="TRUE" UnlimitedLengthInDocumentLibrary="FALSE" ID="{a4554917-9a16-48a6-af2b-61d43c7aaa92}" SourceID="{{listid:Neighbourhoods}}" StaticName="floor_id_x003a_floor_name_en" Name="floor_id_x003a_floor_name_en" Version="2" Group="Custom Columns" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Regions" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Regions" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Regions/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Regions/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Regions/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{7AE99233-748E-43B6-A47D-60275E701B7F}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Regions/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="region_name_en" />
+                <FieldRef Name="region_name_fr" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="region_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="region_name_en" Title="region_name_en" Type="Text" ID="{f2b38921-3684-4338-a4e6-df357b7d00a4}" SourceID="{{listid:Regions}}" StaticName="region_name_en" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="region_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="region_name_fr" Title="region_name_fr" Type="Text" ID="{99ef9537-7faf-4659-b51d-0ad9ccf4eea6}" SourceID="{{listid:Regions}}" StaticName="region_name_fr" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Reservations" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Reservations" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Reservations/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Reservations/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Reservations/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{45214D35-CBA2-43D9-9AF0-83E4267D3C44}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Reservations/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="user_email" />
+                <FieldRef Name="proxy_user_email" />
+                <FieldRef Name="desk_id" />
+                <FieldRef Name="start_date" />
+                <FieldRef Name="status" />
+                <FieldRef Name="timeslot_id" />
+                <FieldRef Name="outlook_meeting_id" />
+                <FieldRef Name="Modified" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+            <View Name="{BDC4DB0A-7FED-489A-B0A6-8145103FB1AF}" Type="HTML" Personal="TRUE" DisplayName="Ian's View" Url="{site}/Lists/Reservations/PersonalViews.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query>
+                <OrderBy>
+                  <FieldRef Name="start_date" Ascending="FALSE" />
+                </OrderBy>
+                <Where>
+                  <Or>
+                    <Eq>
+                      <FieldRef Name="user_email" />
+                      <Value Type="Text">ian.wilkinson@ised-isde.gc.ca</Value>
+                    </Eq>
+                    <Eq>
+                      <FieldRef Name="proxy_user_email" />
+                      <Value Type="Text">ian.wilkinson@ised-isde.gc.ca</Value>
+                    </Eq>
+                  </Or>
+                </Where>
+              </Query>
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="user_email" />
+                <FieldRef Name="proxy_user_email" />
+                <FieldRef Name="desk_id" />
+                <FieldRef Name="start_date" />
+                <FieldRef Name="status" />
+                <FieldRef Name="timeslot_id" />
+                <FieldRef Name="outlook_meeting_id" />
+                <FieldRef Name="Modified" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <Aggregations Value="Off" />
+              <JSLink>clienttemplates.js</JSLink>
+              <ViewData />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="start_date" FriendlyDisplayFormat="Disabled" Format="DateOnly" IsModern="TRUE" Name="start_date" Title="start_date" Type="DateTime" ID="{e6f90feb-78ea-45da-94a7-b14fafc3dd67}" SourceID="{{listid:Reservations}}" StaticName="start_date" ColName="datetime1" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" CalType="0" Version="3" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" CustomFormatter="{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;flex-wrap&quot;:&quot;wrap&quot;,&quot;display&quot;:&quot;flex&quot;},&quot;children&quot;:[{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;box-sizing&quot;:&quot;border-box&quot;,&quot;padding&quot;:&quot;4px 8px 5px 8px&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;border-radius&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;24px&quot;,&quot;align-items&quot;:&quot;center&quot;,&quot;white-space&quot;:&quot;nowrap&quot;,&quot;overflow&quot;:&quot;hidden&quot;,&quot;margin&quot;:&quot;4px 4px 4px 4px&quot;},&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;BOOKED&quot;]},&quot;sp-css-backgroundColor-successBackground50&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;CANCELLED&quot;]},&quot;sp-css-backgroundColor-BgRed sp-css-borderColor-WhiteFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;ON HOLD&quot;]},&quot;sp-css-backgroundColor-BgGold sp-css-borderColor-GoldFont&quot;,&quot;sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-neutralSecondary&quot;]}]}]}]}},&quot;children&quot;:[{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;line-height&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;14px&quot;},&quot;attributes&quot;:{&quot;iconName&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;BOOKED&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;CANCELLED&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;ON HOLD&quot;]},&quot;&quot;,&quot;&quot;]}]}]}]},&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;BOOKED&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;CANCELLED&quot;]},&quot;sp-css-color-WhiteFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;ON HOLD&quot;]},&quot;sp-css-color-GoldFont&quot;,&quot;&quot;]}]}]}]}}},{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;overflow&quot;:&quot;hidden&quot;,&quot;text-overflow&quot;:&quot;ellipsis&quot;,&quot;padding&quot;:&quot;0 3px&quot;},&quot;txtContent&quot;:&quot;[$status]&quot;,&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;BOOKED&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;CANCELLED&quot;]},&quot;sp-css-color-WhiteFont&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$status]&quot;,&quot;ON HOLD&quot;]},&quot;sp-css-color-GoldFont&quot;,&quot;&quot;]}]}]}]}}}]}],&quot;templateId&quot;:&quot;BgColorChoicePill&quot;}" DisplayName="status" FillInChoice="FALSE" Format="Dropdown" Name="status" Required="TRUE" Title="status" Type="Choice" ID="{5b838dc8-8b15-4a74-a392-9301d82dad92}" Version="5" StaticName="status" SourceID="{{listid:Reservations}}" ColName="nvarchar4" RowOrdinal="0">
+              <CHOICES>
+                <CHOICE>BOOKED</CHOICE>
+                <CHOICE>CANCELLED</CHOICE>
+                <CHOICE>ON HOLD</CHOICE>
+              </CHOICES>
+            </Field>
+            <Field DisplayName="user_email" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="user_email" Required="FALSE" Title="user_email" Type="Text" ID="{89204556-3386-4f22-8f56-b42cac8869ad}" SourceID="{{listid:Reservations}}" StaticName="user_email" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="proxy_user_email" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="proxy_user_email" Title="proxy_user_email" Type="Text" ID="{11c25bf2-be22-4b64-ae6c-523193b58079}" SourceID="{{listid:Reservations}}" StaticName="proxy_user_email" ColName="nvarchar6" RowOrdinal="0" />
+            <Field Type="Lookup" DisplayName="desk_id" Required="TRUE" EnforceUniqueValues="FALSE" List="{listid:Desks}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" ID="{d22dfb8c-9043-4cf9-8fd3-e3a94b8bf4e0}" SourceID="{{listid:Reservations}}" StaticName="desk_id" Name="desk_id" ColName="int1" RowOrdinal="0" Group="" Version="1" />
+            <Field Type="Lookup" DisplayName="timeslot_id" Required="TRUE" EnforceUniqueValues="FALSE" List="{listid:Timeslots}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" ID="{153fcd56-3814-46fa-b97e-0bb868931ce2}" SourceID="{{listid:Reservations}}" StaticName="timeslot_id" Name="timeslot_id" ColName="int2" RowOrdinal="0" />
+            <Field Type="Note" DisplayName="outlook_meeting_id" Required="FALSE" EnforceUniqueValues="FALSE" Indexed="FALSE" NumLines="6" RichText="TRUE" RichTextMode="FullHtml" IsolateStyles="TRUE" Sortable="FALSE" ID="{984ea14f-f285-462b-a3e1-d55db8d67b5e}" SourceID="{{listid:Reservations}}" StaticName="outlook_meeting_id" Name="outlook_meeting_id" ColName="ntext2" RowOrdinal="0" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="SeatingArrangements" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/SeatingArrangement" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/SeatingArrangement/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/SeatingArrangement/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/SeatingArrangement/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{8F81F44E-D435-40E1-8559-50226966FA1E}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/SeatingArrangement/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="seating_arrangement_name_en" />
+                <FieldRef Name="seating_arrangement_name_fr" />
+                <FieldRef Name="icon_link" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="seating_arrangement_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="seating_arrangement_name_fr" Title="seating_arrangement_name_fr" Type="Text" ID="{b1f13204-5245-4932-a1f8-8afd3b268aa7}" SourceID="{{listid:SeatingArrangements}}" StaticName="seating_arrangement_name_fr" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="icon_link" Format="Image" IsModern="TRUE" Name="icon_link" Title="icon_link" Type="URL" ID="{cb75670f-6f81-4640-acc8-dbf4a114a390}" SourceID="{{listid:SeatingArrangements}}" StaticName="icon_link" ColName="nvarchar5" RowOrdinal="0" ColName2="nvarchar6" RowOrdinal2="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="2" />
+            <Field DisplayName="seating_arrangement_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="seating_arrangement_name_en" Title="seating_arrangement_name_en" Type="Text" ID="{052d26a8-64db-49d8-b9db-212eee819bb4}" SourceID="{{listid:SeatingArrangements}}" StaticName="seating_arrangement_name_en" ColName="nvarchar7" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="SeatingTypes" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/SeatingTypes" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/SeatingTypes/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/SeatingTypes/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/SeatingTypes/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{C9082848-C4B5-4EAE-A893-DDF3F146089F}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/SeatingTypes/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="seating_type_name_en" />
+                <FieldRef Name="seating_type_name_fr" />
+                <FieldRef Name="seating_type_description_en" />
+                <FieldRef Name="seating_type_description_fr" />
+                <FieldRef Name="seating_type_image" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="seating_type_name_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="seating_type_name_fr" Title="seating_type_name_fr" Type="Text" ID="{71c881e8-f83e-4575-aa4a-57980af56de3}" SourceID="{{listid:SeatingTypes}}" StaticName="seating_type_name_fr" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="seating_type_name_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="seating_type_name_en" Title="seating_type_name_en" Type="Text" ID="{6b7ca3be-7458-4c36-a8c8-eecb6a4afe82}" SourceID="{{listid:SeatingTypes}}" StaticName="seating_type_name_en" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field AppendOnly="FALSE" DisplayName="seating_type_description_en" Format="Dropdown" IsModern="TRUE" IsolateStyles="FALSE" Name="seating_type_description_en" RichText="FALSE" RichTextMode="Compatible" Title="seating_type_description_en" Type="Note" ID="{77202be8-7927-4377-bf2a-7d60c7bff99d}" SourceID="{{listid:SeatingTypes}}" StaticName="seating_type_description_en" ColName="ntext2" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" NumLines="6" RestrictedMode="TRUE" Version="1" />
+            <Field AppendOnly="FALSE" DisplayName="seating_type_description_fr" Format="Dropdown" IsModern="TRUE" IsolateStyles="FALSE" Name="seating_type_description_fr" RichText="FALSE" RichTextMode="Compatible" Title="seating_type_description_fr" Type="Note" ID="{1c5096f8-2044-4d16-894f-d93701732d65}" SourceID="{{listid:SeatingTypes}}" StaticName="seating_type_description_fr" ColName="ntext3" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" NumLines="6" RestrictedMode="TRUE" Version="1" />
+            <Field Type="URL" DisplayName="seating_type_image" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Format="Image" ID="{3afbd3d0-0619-4fd7-acde-e5f1af6af626}" SourceID="{{listid:SeatingTypes}}" StaticName="seating_type_image" Name="seating_type_image" ColName="nvarchar6" RowOrdinal="0" ColName2="nvarchar7" RowOrdinal2="0" CustomFormatter="" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Timeslots" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Timeslots" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Timeslots/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Timeslots/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Timeslots/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{A1CDB913-543A-462F-A057-FF8EE08316D1}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Timeslots/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="time_range_en" />
+                <FieldRef Name="time_range_fr" />
+                <FieldRef Name="start_time" />
+                <FieldRef Name="start_time_in_min" />
+                <FieldRef Name="end_time" />
+                <FieldRef Name="end_time_in_min" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="start_time" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="start_time" Title="start_time" Type="Text" ID="{47513cf1-e023-4692-8b47-8e056a82b87f}" SourceID="{{listid:Timeslots}}" StaticName="start_time" ColName="nvarchar4" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+	    <Field Type="Number" DisplayName="start_time_in_min" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Decimals="0" ID="{d1d3ba39-c7f7-4da6-abeb-a83d2ca77330}" SourceID="{{listid:Timeslots}}" StaticName="start_time_in_min" Name="start_time_in_min" ColName="float2" RowOrdinal="0" />            
+	    <Field DisplayName="end_time" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="end_time" Title="end_time" Type="Text" ID="{ff6f5f10-e9c3-4ecd-8ab1-ad9f3985fe51}" SourceID="{{listid:Timeslots}}" StaticName="end_time" ColName="nvarchar5" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />            
+	    <Field Type="Number" DisplayName="end_time_in_min" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Decimals="0" ID="{e0dd31cc-2efd-4b39-8570-f1e9ed6d4004}" SourceID="{{listid:Timeslots}}" StaticName="end_time_in_min" Name="end_time_in_min" ColName="float2" RowOrdinal="0" />
+            <Field DisplayName="time_range_fr" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="time_range_fr" Title="time_range_fr" Type="Text" ID="{54ddb62b-2459-4129-ac84-3257dc2b0ecd}" SourceID="{{listid:Timeslots}}" StaticName="time_range_fr" ColName="nvarchar6" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+            <Field DisplayName="time_range_en" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="time_range_en" Title="time_range_en" Type="Text" ID="{5d4301ae-cbfd-4c7e-bb27-b1a7f9fe8b07}" SourceID="{{listid:Timeslots}}" StaticName="time_range_en" ColName="nvarchar7" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Translations" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Translations" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Translations/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Translations/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Translations/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{3CBF80E5-9EB8-40B1-829D-6AFB82E8320B}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Translations/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="key" />
+                <FieldRef Name="text" />
+                <FieldRef Name="language" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field AppendOnly="FALSE" ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="key" Format="Dropdown" IsolateStyles="FALSE" Name="key" Required="TRUE" RichText="FALSE" RichTextMode="Compatible" Title="key" Type="Note" ID="{4c24cea2-d518-4736-833b-8c5e87b58692}" Version="3" StaticName="key" SourceID="{{listid:Translations}}" ColName="ntext2" RowOrdinal="0" />
+            <Field AppendOnly="FALSE" ClientSideComponentId="00000000-0000-0000-0000-000000000000" DisplayName="text" Format="Dropdown" IsolateStyles="FALSE" Name="text" RichText="FALSE" RichTextMode="Compatible" Title="text" Type="Note" ID="{fd67e017-ead7-41f8-a7ab-f2c76363bc82}" Version="3" StaticName="text" SourceID="{{listid:Translations}}" ColName="ntext3" RowOrdinal="0" CustomFormatter="" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" NumLines="6" RestrictedMode="TRUE" />
+            <Field CustomFormatter="{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;flex-wrap&quot;:&quot;wrap&quot;,&quot;display&quot;:&quot;flex&quot;},&quot;children&quot;:[{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;box-sizing&quot;:&quot;border-box&quot;,&quot;padding&quot;:&quot;4px 8px 5px 8px&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;border-radius&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;24px&quot;,&quot;align-items&quot;:&quot;center&quot;,&quot;white-space&quot;:&quot;nowrap&quot;,&quot;overflow&quot;:&quot;hidden&quot;,&quot;margin&quot;:&quot;4px 4px 4px 4px&quot;},&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;en&quot;]},&quot;sp-css-backgroundColor-blueBackground37&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;fr&quot;]},&quot;sp-css-backgroundColor-successBackground50&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-neutralSecondary&quot;]}]}]}},&quot;children&quot;:[{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;line-height&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;14px&quot;},&quot;attributes&quot;:{&quot;iconName&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;en&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;fr&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;&quot;]}]}]}}},{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;overflow&quot;:&quot;hidden&quot;,&quot;text-overflow&quot;:&quot;ellipsis&quot;,&quot;padding&quot;:&quot;0 3px&quot;},&quot;txtContent&quot;:&quot;@currentField&quot;,&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;en&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;fr&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;@currentField&quot;,&quot;&quot;]},&quot;&quot;,&quot;&quot;]}]}]}}}]}],&quot;templateId&quot;:&quot;BgColorChoicePill&quot;}" DisplayName="language" FillInChoice="FALSE" Format="Dropdown" IsModern="TRUE" Name="language" Title="language" Type="Choice" ID="{d8d5e050-3a23-4ccd-bff7-72bd73a61cdf}" SourceID="{{listid:Translations}}" StaticName="language" ColName="nvarchar4" RowOrdinal="0" Required="TRUE" EnforceUniqueValues="FALSE" Indexed="FALSE" Version="1">
+              <CHOICES>
+                <CHOICE>en</CHOICE>
+                <CHOICE>fr</CHOICE>
+              </CHOICES>
+            </Field>
+          </pnp:Fields>
+        </pnp:ListInstance>
+        <pnp:ListInstance Title="Users" Description="" DocumentTemplate="" OnQuickLaunch="true" TemplateType="100" Url="Lists/Users" EnableVersioning="true" MinorVersionLimit="0" MaxVersionLimit="50" DraftVersionVisibility="0" TemplateFeatureID="00bfea71-de22-43b2-a848-c05709900100" EnableFolderCreation="false" DefaultDisplayFormUrl="{site}/Lists/Users/DispForm.aspx" DefaultEditFormUrl="{site}/Lists/Users/EditForm.aspx" DefaultNewFormUrl="{site}/Lists/Users/NewForm.aspx" ImageUrl="/_layouts/15/images/itgen.png?rev=47" IrmExpire="false" IrmReject="false" IsApplicationList="false" ValidationFormula="" ValidationMessage="">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x01" Default="true" />
+            <pnp:ContentTypeBinding ContentTypeID="0x0120" />
+          </pnp:ContentTypeBindings>
+          <pnp:Views>
+            <View Name="{45A8BB40-E925-4D23-99F5-118C16366309}" DefaultView="TRUE" MobileView="TRUE" MobileDefaultView="TRUE" Type="HTML" DisplayName="All Items" Url="{site}/Lists/Users/AllItems.aspx" Level="1" BaseViewID="1" ContentTypeID="0x" ImageUrl="/_layouts/15/images/generic.png?rev=47">
+              <Query />
+              <ViewFields>
+                <FieldRef Name="ID" />
+                <FieldRef Name="user_email" />
+                <FieldRef Name="language" />
+                <FieldRef Name="reservation_count" />
+                <FieldRef Name="tester" />
+                <FieldRef Name="save_search_defaults" />
+                <FieldRef Name="pref_region" />
+                <FieldRef Name="pref_building" />
+                <FieldRef Name="pref_floor" />
+                <FieldRef Name="pref_neighbourhood" />
+                <FieldRef Name="pref_seatingtype" />
+              </ViewFields>
+              <RowLimit Paged="TRUE">30</RowLimit>
+              <JSLink>clienttemplates.js</JSLink>
+              <CustomFormatter />
+            </View>
+          </pnp:Views>
+          <pnp:Fields>
+            <Field DisplayName="user_email" Format="Dropdown" IsModern="TRUE" MaxLength="255" Name="user_email" Title="user_email" Type="Text" ID="{b18f9081-a7a6-4c7d-aff1-85ad33a81476}" SourceID="{{listid:Users}}" StaticName="user_email" ColName="nvarchar4" RowOrdinal="0" />
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" CustomFormatter="{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;flex-wrap&quot;:&quot;wrap&quot;,&quot;display&quot;:&quot;flex&quot;},&quot;children&quot;:[{&quot;elmType&quot;:&quot;div&quot;,&quot;style&quot;:{&quot;box-sizing&quot;:&quot;border-box&quot;,&quot;padding&quot;:&quot;4px 8px 5px 8px&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;border-radius&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;24px&quot;,&quot;align-items&quot;:&quot;center&quot;,&quot;white-space&quot;:&quot;nowrap&quot;,&quot;overflow&quot;:&quot;hidden&quot;,&quot;margin&quot;:&quot;4px 4px 4px 4px&quot;},&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;English&quot;]},&quot;sp-css-backgroundColor-warningBackground30&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;Français&quot;]},&quot;sp-css-backgroundColor-BgBlue sp-css-borderColor-WhiteFont&quot;,&quot;sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-neutralSecondary&quot;]}]}]}},&quot;children&quot;:[{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;line-height&quot;:&quot;16px&quot;,&quot;height&quot;:&quot;14px&quot;},&quot;attributes&quot;:{&quot;iconName&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;English&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;Français&quot;]},&quot;&quot;,&quot;&quot;]}]}]},&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;English&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;Français&quot;]},&quot;sp-css-color-WhiteFont&quot;,&quot;&quot;]}]}]}}},{&quot;elmType&quot;:&quot;span&quot;,&quot;style&quot;:{&quot;overflow&quot;:&quot;hidden&quot;,&quot;text-overflow&quot;:&quot;ellipsis&quot;,&quot;padding&quot;:&quot;0 3px&quot;},&quot;txtContent&quot;:&quot;[$language]&quot;,&quot;attributes&quot;:{&quot;class&quot;:{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;English&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;&quot;]},&quot;&quot;,{&quot;operator&quot;:&quot;:&quot;,&quot;operands&quot;:[{&quot;operator&quot;:&quot;==&quot;,&quot;operands&quot;:[&quot;[$language]&quot;,&quot;Français&quot;]},&quot;sp-css-color-WhiteFont&quot;,&quot;&quot;]}]}]}}}]}],&quot;templateId&quot;:&quot;BgColorChoicePill&quot;}" DisplayName="language" FillInChoice="FALSE" Format="Dropdown" Name="language" Title="language" Type="Choice" ID="{edcca7b0-7ff0-400a-a864-7aae0bb45bda}" Version="6" StaticName="language" SourceID="{{listid:Users}}" ColName="nvarchar5" RowOrdinal="0">
+              <CHOICES>
+                <CHOICE>English</CHOICE>
+                <CHOICE>Français</CHOICE>
+              </CHOICES>
+            </Field>
+            <Field ClientSideComponentId="00000000-0000-0000-0000-000000000000" CommaSeparator="TRUE" CustomUnitOnRight="TRUE" Decimals="0" DisplayName="reservations_made_count" Format="Dropdown" Name="reservation_count" Percentage="FALSE" Title="reservations_made_count" Type="Number" Unit="None" ID="{5cc65247-7c43-4752-a95e-a1636caf2c71}" Version="4" StaticName="reservation_count" SourceID="{{listid:Users}}" ColName="float1" RowOrdinal="0">
+              <Default>0</Default>
+            </Field>
+            <Field DisplayName="tester" Format="Dropdown" IsModern="TRUE" Name="tester" Title="tester" Type="Boolean" ID="{2ab8a571-0ace-4ec0-8077-4a82ae7f3481}" SourceID="{{listid:Users}}" StaticName="tester" ColName="bit1" RowOrdinal="0">
+              <Default>0</Default>
+            </Field>
+            <Field DisplayName="save_search_defaults" Format="Dropdown" IsModern="TRUE" Name="save_search_defaults" Title="save_search_defaults" Type="Boolean" ID="{dc2016b8-bc4d-4f7f-b6e8-0fec1142ecab}" SourceID="{{listid:Users}}" StaticName="save_search_defaults" ColName="bit3" RowOrdinal="0">
+              <Default>0</Default>
+            </Field>
+            <Field Type="Lookup" DisplayName="pref_region" Required="FALSE" EnforceUniqueValues="FALSE" List="{listid:Regions}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" RelationshipDeleteBehavior="None" ID="{9a258e6e-11b2-4d38-8ca6-bbe03bb30e41}" SourceID="{{listid:Users}}" StaticName="pref_region" Name="pref_region" ColName="int1" RowOrdinal="0" />
+            <Field Type="Lookup" DisplayName="pref_building" Required="FALSE" EnforceUniqueValues="FALSE" List="{listid:Buildings}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" RelationshipDeleteBehavior="None" ID="{21da598f-18d9-4733-8392-b459dce5e5c1}" SourceID="{{listid:Users}}" StaticName="pref_building" Name="pref_building" ColName="int2" RowOrdinal="0" />
+            <Field Type="Lookup" DisplayName="pref_floor" Required="FALSE" EnforceUniqueValues="FALSE" List="{listid:Floors}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" RelationshipDeleteBehavior="None" ID="{7134e8f1-a199-4c62-848d-89c15d3c7628}" SourceID="{{listid:Users}}" StaticName="pref_floor" Name="pref_floor" ColName="int3" RowOrdinal="0" />
+            <Field Type="Lookup" DisplayName="pref_neighbourhood" Required="FALSE" EnforceUniqueValues="FALSE" List="{listid:Neighbourhoods}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" RelationshipDeleteBehavior="None" ID="{54caa652-f653-4884-a809-661ccbb27f98}" SourceID="{{listid:Users}}" StaticName="pref_neighbourhood" Name="pref_neighbourhood" ColName="int4" RowOrdinal="0" />
+            <Field Type="Lookup" DisplayName="pref_seatingtype" Required="FALSE" EnforceUniqueValues="FALSE" List="{listid:SeatingTypes}" ShowField="ID" UnlimitedLengthInDocumentLibrary="FALSE" RelationshipDeleteBehavior="None" ID="{101af0c5-1c5a-4e43-83c3-b574c6c9142b}" SourceID="{{listid:Users}}" StaticName="pref_seatingtype" Name="pref_seatingtype" ColName="int5" RowOrdinal="0" />
+          </pnp:Fields>
+        </pnp:ListInstance>
+      </pnp:Lists>
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>
